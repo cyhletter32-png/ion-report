@@ -142,7 +142,8 @@
   .btn.sm{padding:6px 11px;font-size:12px;}
 
   label{font-size:12.5px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:6px;}
-  input[type=text], input[type=number], input[type=month], input[type=date], select, textarea{
+  #auth_loginBtn{box-sizing:border-box;}
+  input[type=text], input[type=password], input[type=number], input[type=month], input[type=date], select, textarea{
     width:100%;
     font-family:var(--sans);
     font-size:14px;
@@ -6354,7 +6355,10 @@
   let syncEnabled = false;
   let syncSnapshots = {}; // 테이블명 -> Map(항목key -> 마지막으로 서버에 반영한 JSON 문자열)
   // 아이디 로그인을 흉내내기 위해 내부적으로 <아이디>@ion.local 이메일을 씁니다.
-  function loginIdToEmail(id){ return id.trim().toLowerCase() + '@ion.local'; }
+  function loginIdToEmail(id){
+    const v = id.trim().toLowerCase();
+    return v.includes('@') ? v : v + '@ion.local';
+  }
 
   // ----- 항목 단위 동기화 (학생/리포트/상담/일정/출석) -----
   // 마지막으로 서버에 보낸 상태와 비교해 바뀐 항목만 upsert, 사라진 항목만 delete합니다.
@@ -6511,6 +6515,7 @@
       console.error(e);
       toast('서버에서 데이터를 불러오지 못했습니다. 새로고침해서 다시 시도해주세요.');
     }
+    document.getElementById('auth_status').textContent = '';
     syncEnabled = true; // 이제부터의 저장은 실제로 서버에 반영됩니다
     renderDashboard();
     renderHome();
@@ -6549,7 +6554,8 @@
     const {error} = await sb.auth.signInWithPassword({ email: loginIdToEmail(loginId), password });
     document.getElementById('auth_loginBtn').textContent = '로그인';
     if(error){
-      errEl.textContent = '아이디 또는 비밀번호가 올바르지 않습니다.';
+      console.error(error);
+      errEl.textContent = '로그인 실패: ' + error.message;
       errEl.style.display = 'block';
       return;
     }
