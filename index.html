@@ -6381,7 +6381,7 @@
         if(error) throw error;
       }
       for(const k of deletedKeys){ await deleteFn(k); }
-    }catch(e){ console.error('sync error:', table, e); toast('서버 저장 중 문제가 발생했습니다. 다시 시도해주세요.'); }
+    }catch(e){ console.error('sync error:', table, e); toast('서버 저장 실패 ('+table+'): '+(e.message||e)); }
     const next = new Map();
     items.forEach(item=> next.set(keyOf(item), JSON.stringify(item)));
     syncSnapshots[table] = next;
@@ -6390,7 +6390,7 @@
     await syncRows('students', students,
       s=>s.id,
       s=>({id:s.id, name:s.name, grade:s.grade||'', class_name:s.group||'', tuition_category:s.tuitionCategory||'', sibling_discount:!!s.siblingDiscount}),
-      async id=>{ await sb.from('students').delete().eq('id', id); }
+      async id=>{ const {error}=await sb.from('students').delete().eq('id', id); if(error) throw error; }
     );
   }
   async function syncReports(){
@@ -6441,7 +6441,7 @@
     try{
       const {error} = await sb.from('app_blobs').upsert({key, value});
       if(error) throw error;
-    }catch(e){ console.error('blob sync error:', key, e); toast('서버 저장 중 문제가 발생했습니다. 다시 시도해주세요.'); }
+    }catch(e){ console.error('blob sync error:', key, e); toast('서버 저장 실패 ('+key+'): '+(e.message||e)); }
   }
 
   // ----- 로그인 후 서버에서 전체 데이터 불러오기 -----
