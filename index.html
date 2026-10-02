@@ -569,6 +569,10 @@
 
   /* ---------- 선생님 계정 관리 ---------- */
   .tm-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
+  body.no-tuition .nav button[data-view="tuition"], body.no-tuition #view-tuition, body.no-tuition [data-go="tuition"], body.no-tuition #exportExcelTuitionBtn{display:none !important;}
+  .tm-tu{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;padding:6px 10px;border-radius:99px;background:#fff;border:1px solid var(--line);user-select:none;}
+  .tm-tu input{accent-color:var(--gold);width:15px;height:15px;margin:0;cursor:pointer;}
+  .tm-tu.on{background:#EAF2FD;border-color:#BBD3F2;color:#245A9E;}
   .tm-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;background:var(--paper);border-radius:12px;}
   .tm-row b{display:block;font-size:14px;color:var(--ink);}
   .tm-row span{font-size:12px;color:var(--muted);}
@@ -1174,7 +1178,7 @@
 <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.0/kakao.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
-<body>
+<body class="no-tuition">
 
 <div id="authScreen">
   <div class="au-side">
@@ -2637,6 +2641,14 @@
   const HW_MSG_DEFAULT = '{월}월 {일}일 {요일}요일 [{학생}]\n\n{시험결과}\n\n{숙제}';
   let hwMsgTemplate = localStorage.getItem('ionReport_hwMsgTpl') || HW_MSG_DEFAULT;
   function saveHwMsgTemplate(){ localStorage.setItem('ionReport_hwMsgTpl', hwMsgTemplate); syncBlob('hwMsgTemplate', hwMsgTemplate); }
+  // 원비 열람 권한: 원장 + 원장이 지정한 선생님만 (서버 RLS와 동일 규칙, 화면은 기본 숨김)
+  let canViewTuition = false;
+  const TUITION_KEYS = ['tuitionRates','tuitionRecords','tuitionDiscounts'];
+  function setTuitionAccess(ok){
+    canViewTuition = !!ok;
+    document.body.classList.toggle('no-tuition', !ok);
+    if(!ok && document.getElementById('view-tuition').classList.contains('active')) showView('home');
+  }
   function saveTuitionRates(){ localStorage.setItem(LS_TUITION_RATES, JSON.stringify(tuitionRates)); syncBlob('tuitionRates', tuitionRates); }
   function saveTuitionRecords(){ localStorage.setItem(LS_TUITION_RECORDS, JSON.stringify(tuitionRecords)); syncBlob('tuitionRecords', tuitionRecords); }
   function saveTuitionDiscounts(){ localStorage.setItem(LS_TUITION_DISCOUNTS, JSON.stringify(tuitionDiscounts)); syncBlob('tuitionDiscounts', tuitionDiscounts); }
@@ -3373,6 +3385,7 @@
     localStorage.setItem(LS_SIDEBAR_COLLAPSED, collapsed ? '1' : '0');
   });
   function showView(name){
+    if(name==='tuition' && !canViewTuition) name = 'home';
     exitProfileMode();
     document.querySelectorAll('main > section').forEach(s=>s.classList.remove('active'));
     document.getElementById('view-'+name).classList.add('active');
@@ -4813,7 +4826,7 @@
     addStudentsSheet(wb);
     addReportsSheet(wb);
     addConsultsSheet(wb);
-    addTuitionSheet(wb);
+    if(canViewTuition) addTuitionSheet(wb);
     addAttendanceSheet(wb);
     await downloadWorkbook(wb, 'data');
   });
@@ -7381,6 +7394,7 @@
   // ----- 통째 동기화 (설정성 데이터) -----
   async function syncBlob(key, value){
     if(!syncEnabled) return;
+    if(TUITION_KEYS.includes(key) && !canViewTuition) return;
     try{
       const {error} = await sb.from('app_blobs').upsert({key, value});
       if(error) throw error;
@@ -7479,7 +7493,16 @@
         const {data:profile} = await sb.from('profiles').select('login_id, display_name, role').eq('user_id', user.id).maybeSingle();
         const infoEl = document.getElementById('settingsAccountInfo');
         if(profile) setProfileChip(profile);
-        if(profile && profile.role === 'owner'){ document.getElementById('teacherMgmtCard').style.display = 'block'; tmLoad(); }
+        if(profile && profile.role === 'owner'){ setTuitionAccess(true); document.getElementById('teacherMgmtCard').style.display = 'block'; tmLoad(); }
+        else if(profile){
+          let ok = false;
+          try{
+            const {data:acc, error:accErr} = await sb.from('tuition_access').select('user_id').eq('user_id', user.id).maybeSingle();
+            ok = !accErr && !!acc;
+          }catch(e){ ok = false; }
+          setTuitionAccess(ok);
+          if(ok) renderTuitionTab && document.getElementById('view-tuition').classList.contains('active') && renderTuitionTab();
+        }
         if(!profile) toast('이 계정의 프로필이 서버에 없습니다. 저장이 막힐 수 있으니 관리자(프로필 등록)를 확인해주세요.');
         if(infoEl && profile){
           const roleLabel = profile.role === 'owner' ? '원장' : '선생님';
@@ -7504,6 +7527,7 @@
     const el = document.getElementById('tm_msg');
     el.textContent = text || ''; el.className = 'tm-msg' + (kind ? ' '+kind : '');
   }
+  let tuAccessSet = new Set();
   function tmRender(users){
     const wrap = document.getElementById('tm_list');
     const teachers = (users||[]).filter(u=>u.role === 'teacher');
@@ -7512,13 +7536,23 @@
       <div class="tm-row">
         <div><b>${escapeHtml(u.display_name || u.login_id)}</b><span>아이디: ${escapeHtml(u.login_id)}</span></div>
         <div class="tm-act">
+          <label class="tm-tu${tuAccessSet.has(u.user_id)?' on':''}" title="이 선생님이 원비 수납 메뉴를 볼 수 있게 합니다"><input type="checkbox" data-tm-tu="${escapeAttr(u.user_id)}" ${tuAccessSet.has(u.user_id)?'checked':''}>원비 열람</label>
           <button class="btn ghost sm" data-tm-pw="${escapeAttr(u.user_id)}" data-tm-name="${escapeAttr(u.display_name || u.login_id)}">비밀번호 변경</button>
           <button class="btn danger sm" data-tm-del="${escapeAttr(u.user_id)}" data-tm-name="${escapeAttr(u.display_name || u.login_id)}">삭제</button>
         </div>
       </div>`).join('');
   }
   async function tmLoad(){
-    try{ const r = await tmCall({action:'list'}); tmRender(r.users); tmMsg(''); }
+    try{
+      const r = await tmCall({action:'list'});
+      tuAccessSet = new Set();
+      try{
+        const {data:acc, error:accErr} = await sb.from('tuition_access').select('user_id');
+        if(accErr) throw accErr;
+        (acc||[]).forEach(a=>tuAccessSet.add(a.user_id));
+      }catch(e){ console.error('tuition_access load', e); tmMsg('원비 열람 권한 표(tuition_access)가 아직 없습니다. 안내드린 SQL을 먼저 실행해주세요.', 'err'); tmRender(r.users); return; }
+      tmRender(r.users); tmMsg('');
+    }
     catch(e){ tmRender([]); tmMsg(e.message, 'err'); }
   }
   document.getElementById('tm_addBtn').addEventListener('click', async ()=>{
@@ -7534,6 +7568,21 @@
       await tmLoad(); tmMsg('선생님 계정을 만들었습니다. 아이디: '+id, 'ok');
     }catch(e){ tmMsg(e.message, 'err'); }
     btn.disabled = false;
+  });
+  document.getElementById('tm_list').addEventListener('change', async e=>{
+    const cb = e.target.closest('input[data-tm-tu]'); if(!cb) return;
+    const uid = cb.dataset.tmTu, on = cb.checked;
+    cb.disabled = true;
+    try{
+      if(on){ const {error} = await sb.from('tuition_access').upsert({user_id:uid}); if(error) throw error; tuAccessSet.add(uid); }
+      else { const {error} = await sb.from('tuition_access').delete().eq('user_id', uid); if(error) throw error; tuAccessSet.delete(uid); }
+      cb.closest('.tm-tu').classList.toggle('on', on);
+      tmMsg(on ? '원비 열람 권한을 지정했습니다.' : '원비 열람 권한을 해제했습니다.', 'ok');
+    }catch(err){
+      cb.checked = !on;
+      tmMsg('권한 변경 실패: ' + (err.message||err) + ' (SQL을 먼저 실행했는지 확인해주세요)', 'err');
+    }
+    cb.disabled = false;
   });
   document.getElementById('tm_list').addEventListener('click', async e=>{
     const pwBtn = e.target.closest('[data-tm-pw]'), delBtn = e.target.closest('[data-tm-del]');
