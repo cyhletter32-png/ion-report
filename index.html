@@ -1250,6 +1250,7 @@
           <div class="pf-head"><b id="pfMenuName"></b><span id="pfMenuSub"></span></div>
           <div class="pf-sep"></div>
           <button type="button" data-pf="settings">설정</button>
+          <button type="button" data-pf="password">비밀번호 변경</button>
           <button type="button" data-pf="teachers" id="pfTeachersItem" style="display:none;">선생님 계정 관리</button>
           <div class="pf-sep"></div>
           <button type="button" data-pf="logout" class="out">로그아웃</button>
@@ -2098,7 +2099,23 @@
       <div class="card" style="margin-bottom:18px;">
         <div class="section-title"><span class="num">i</span>계정</div>
         <p style="font-size:13px;color:var(--muted);margin:8px 0 14px;" id="settingsAccountInfo"></p>
-        <button class="btn ghost" id="settingsLogoutBtn">로그아웃</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn ghost" id="pwOpenBtn">비밀번호 변경</button>
+          <button class="btn ghost" id="settingsLogoutBtn">로그아웃</button>
+        </div>
+        <div id="pwForm" style="display:none;margin-top:16px;max-width:360px;">
+          <label style="font-size:12.5px;font-weight:600;color:var(--ink-soft);">현재 비밀번호</label>
+          <input type="password" id="pw_cur" autocomplete="current-password" style="margin:4px 0 10px;">
+          <label style="font-size:12.5px;font-weight:600;color:var(--ink-soft);">새 비밀번호 (6자 이상)</label>
+          <input type="password" id="pw_new" autocomplete="new-password" style="margin:4px 0 10px;">
+          <label style="font-size:12.5px;font-weight:600;color:var(--ink-soft);">새 비밀번호 확인</label>
+          <input type="password" id="pw_new2" autocomplete="new-password" style="margin:4px 0 12px;">
+          <div style="display:flex;gap:8px;">
+            <button class="btn gold" id="pwSaveBtn">변경하기</button>
+            <button class="btn ghost" id="pwCancelBtn">취소</button>
+          </div>
+          <div id="pw_msg" class="tm-msg"></div>
+        </div>
       </div>
 
       <div class="card" id="teacherMgmtCard" style="display:none;margin-bottom:18px;">
@@ -2642,6 +2659,8 @@
   let hwMsgTemplate = localStorage.getItem('ionReport_hwMsgTpl') || HW_MSG_DEFAULT;
   function saveHwMsgTemplate(){ localStorage.setItem('ionReport_hwMsgTpl', hwMsgTemplate); syncBlob('hwMsgTemplate', hwMsgTemplate); }
   // 원비 열람 권한: 원장 + 원장이 지정한 선생님만 (서버 RLS와 동일 규칙, 화면은 기본 숨김)
+  // 아이디가 등록된 선생님 이름 목록 (교재 주문 '신청교사' 드롭다운용) — 원장이 선생님 관리를 열 때 갱신
+  let teacherRoster = JSON.parse(localStorage.getItem('ionReport_teacherRoster') || '[]');
   let canViewTuition = false;
   const TUITION_KEYS = ['tuitionRates','tuitionRecords','tuitionDiscounts'];
   function setTuitionAccess(ok){
@@ -7216,6 +7235,11 @@
       return;
     }
 
+    const teacherOptions = cur=>{
+      const names = [...teacherRoster];
+      if(cur && !names.includes(cur)) names.push(cur); // 예전에 직접 입력한 이름은 그대로 유지
+      return '<option value="">신청교사 선택</option>' + names.map(n=>`<option value="${escapeAttr(n)}" ${cur===n?'selected':''}>${escapeHtml(n)}</option>`).join('');
+    };
     const rows = list.map(o=>{
       const classOptions = `<option value="">반 선택</option>` + classNames.map(c=>`<option value="${escapeAttr(c)}" ${o.className===c?'selected':''}>${escapeHtml(c)}</option>`).join('');
       return `<div class="bo-row-group" data-id="${escapeAttr(o.id)}" style="display:contents">
@@ -7223,7 +7247,7 @@
         <div class="bo-cell"><select class="bo-class">${classOptions}</select></div>
         <div class="bo-cell"><input type="text" class="bo-book" placeholder="도서명(교재명)" value="${escapeAttr(o.bookName||'')}"></div>
         <div class="bo-cell"><input type="number" class="bo-qty" min="1" value="${escapeAttr(o.qty||1)}"></div>
-        <div class="bo-cell"><input type="text" class="bo-teacher" placeholder="신청교사" value="${escapeAttr(o.teacher||'')}"></div>
+        <div class="bo-cell"><select class="bo-teacher">${teacherOptions(o.teacher)}</select></div>
         <div class="bo-cell"><select class="bo-status bo-status-${o.status==='주문완료'?'done':'pending'}">
           <option value="미주문" ${o.status==='미주문'?'selected':''}>미주문</option>
           <option value="주문완료" ${o.status==='주문완료'?'selected':''}>주문완료</option>
@@ -7250,7 +7274,7 @@
       row.querySelector('.bo-class').addEventListener('change', (e)=>{ order.className = e.target.value; saveBookOrders(); });
       row.querySelector('.bo-book').addEventListener('change', (e)=>{ order.bookName = e.target.value.trim(); saveBookOrders(); });
       row.querySelector('.bo-qty').addEventListener('change', (e)=>{ order.qty = Number(e.target.value)||1; saveBookOrders(); });
-      row.querySelector('.bo-teacher').addEventListener('change', (e)=>{ order.teacher = e.target.value.trim(); saveBookOrders(); });
+      row.querySelector('.bo-teacher').addEventListener('change', (e)=>{ order.teacher = e.target.value; saveBookOrders(); });
       row.querySelector('.bo-note').addEventListener('change', (e)=>{ order.note = e.target.value.trim(); saveBookOrders(); });
       row.querySelector('.bo-status').addEventListener('change', (e)=>{
         order.status = e.target.value;
@@ -7434,6 +7458,7 @@
     if(blobMap.attTimeOverrides) attTimeOverrides = blobMap.attTimeOverrides;
     if(typeof blobMap.hwMsgTemplate === 'string' && blobMap.hwMsgTemplate) hwMsgTemplate = blobMap.hwMsgTemplate;
     if(typeof blobMap.tuitionMsgTemplate === 'string' && blobMap.tuitionMsgTemplate) tuitionMsgTemplate = blobMap.tuitionMsgTemplate;
+    if(Array.isArray(blobMap.teacherRoster)) teacherRoster = blobMap.teacherRoster;
     if(blobMap.classOrder) classOrder = blobMap.classOrder;
     if(blobMap.studentEnNames){
       students.forEach(s=>{ if(blobMap.studentEnNames[s.id]) s.enName = blobMap.studentEnNames[s.id]; });
@@ -7492,7 +7517,7 @@
       if(user){
         const {data:profile} = await sb.from('profiles').select('login_id, display_name, role').eq('user_id', user.id).maybeSingle();
         const infoEl = document.getElementById('settingsAccountInfo');
-        if(profile) setProfileChip(profile);
+        if(profile){ setProfileChip(profile); myLoginId = profile.login_id || ''; }
         if(profile && profile.role === 'owner'){ setTuitionAccess(true); document.getElementById('teacherMgmtCard').style.display = 'block'; tmLoad(); }
         else if(profile){
           let ok = false;
@@ -7545,6 +7570,14 @@
   async function tmLoad(){
     try{
       const r = await tmCall({action:'list'});
+      // 아이디 등록된 계정 이름을 교재 주문 드롭다운용으로 공유
+      const names = (r.users||[]).map(u=>u.display_name || u.login_id).filter(Boolean);
+      if(JSON.stringify(names) !== JSON.stringify(teacherRoster)){
+        teacherRoster = names;
+        localStorage.setItem('ionReport_teacherRoster', JSON.stringify(teacherRoster));
+        syncBlob('teacherRoster', teacherRoster);
+        if(document.getElementById('view-bookorder').classList.contains('active')) renderBookOrderTab();
+      }
       tuAccessSet = new Set();
       try{
         const {data:acc, error:accErr} = await sb.from('tuition_access').select('user_id');
@@ -7631,7 +7664,40 @@
       document.querySelector('.nav button[data-view="settings"]').click();
       setTimeout(()=>{ const c = document.getElementById('teacherMgmtCard'); if(c) c.scrollIntoView({behavior:'smooth', block:'start'}); }, 120);
     }
+    else if(b.dataset.pf === 'password'){
+      document.querySelector('.nav button[data-view="settings"]').click();
+      setTimeout(()=>{ document.getElementById('pwOpenBtn').click(); }, 120);
+    }
     else if(b.dataset.pf === 'logout'){ document.getElementById('settingsLogoutBtn').click(); }
+  });
+
+  /* ---------- 내 비밀번호 변경 (본인 계정) ---------- */
+  let myLoginId = '';
+  function pwMsg(t, kind){ const el = document.getElementById('pw_msg'); el.textContent = t||''; el.className = 'tm-msg' + (kind?' '+kind:''); }
+  function pwClose(){ document.getElementById('pwForm').style.display = 'none'; ['pw_cur','pw_new','pw_new2'].forEach(i=>document.getElementById(i).value=''); pwMsg(''); }
+  document.getElementById('pwOpenBtn').addEventListener('click', ()=>{
+    const f = document.getElementById('pwForm'); f.style.display = 'block';
+    f.scrollIntoView({behavior:'smooth', block:'center'});
+    document.getElementById('pw_cur').focus({preventScroll:true});
+  });
+  document.getElementById('pwCancelBtn').addEventListener('click', pwClose);
+  document.getElementById('pwSaveBtn').addEventListener('click', async ()=>{
+    const cur = document.getElementById('pw_cur').value, nw = document.getElementById('pw_new').value, nw2 = document.getElementById('pw_new2').value;
+    if(!cur || !nw){ pwMsg('현재 비밀번호와 새 비밀번호를 입력해주세요.', 'err'); return; }
+    if(nw.length < 6){ pwMsg('새 비밀번호는 6자 이상이어야 합니다.', 'err'); return; }
+    if(nw !== nw2){ pwMsg('새 비밀번호 확인이 일치하지 않습니다.', 'err'); return; }
+    if(nw === cur){ pwMsg('현재 비밀번호와 다른 비밀번호를 입력해주세요.', 'err'); return; }
+    const btn = document.getElementById('pwSaveBtn'); btn.disabled = true; pwMsg('변경하는 중...');
+    try{
+      const {data:{user}} = await sb.auth.getUser();
+      const email = (user && user.email) || (myLoginId ? myLoginId + '@ion.local' : '');
+      const chk = await sb.auth.signInWithPassword({email, password:cur});
+      if(chk.error){ pwMsg('현재 비밀번호가 맞지 않습니다.', 'err'); btn.disabled = false; return; }
+      const {error} = await sb.auth.updateUser({password:nw});
+      if(error) throw error;
+      pwClose(); toast('비밀번호를 변경했습니다. 다음 로그인부터 새 비밀번호를 사용하세요.');
+    }catch(e){ pwMsg('변경 실패: ' + (e.message||e), 'err'); }
+    btn.disabled = false;
   });
 
   document.getElementById('settingsLogoutBtn').addEventListener('click', async ()=>{
