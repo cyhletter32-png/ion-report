@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>ION ENGLISH · 학원 관리</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#17283D;
@@ -283,6 +283,8 @@
     padding:16px 18px;cursor:pointer;transition:border-color .15s, transform .1s;
   }
   .student-card:hover{border-color:var(--gold);transform:translateY(-1px);}
+  .student-card .sav, .student-card .rstat{display:none;}
+  .d-only{}
   .student-card h3{font-family:var(--serif);font-size:16.5px;margin:0 0 4px;}
   .student-card .meta{font-size:12px;color:var(--muted);}
   .student-card .count{
@@ -377,6 +379,18 @@
   .roster-grid.list-mode .roster-card.expanded .roster-students{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:6px 26px;flex:none;}
   .roster-grid.list-mode .roster-student{justify-content:flex-start;gap:6px;}
   .roster-grid.list-mode .roster-student-name{flex:0 0 76px;}
+  /* 전체 명단 카드: 흰 카드 + 은은한 그림자, 반 이름은 색 점 + 글자 */
+  .roster-card{background:#fff;border:1px solid #E6EBF3;border-radius:16px;box-shadow:0 1px 2px rgba(20,35,60,.04),0 8px 24px -12px rgba(20,35,60,.12);}
+  .roster-card-title{background:none!important;padding:0;border-radius:0;display:inline-flex;align-items:center;gap:8px;font-weight:800;}
+  .roster-card-title::before{content:"";width:10px;height:10px;border-radius:50%;background:currentColor;opacity:.85;flex:none;}
+  .roster-tb-cell{background:#F4F6FA;border:1px solid #EAEFF6;}
+  .roster-grid:not(.list-mode) .roster-tb-cell input.roster-textbook-input{text-overflow:ellipsis;}
+  .roster-students{border-top:1px solid #EEF1F6;}
+  .roster-grid.list-mode .roster-card-title::before{display:none;}
+  .roster-grid.list-mode .roster-card-title{gap:0;}
+  .roster-grid:not(.list-mode) .roster-students{flex:1 1 auto;min-height:360px;display:grid;grid-template-rows:repeat(9,minmax(36px,1fr));gap:0;align-content:stretch;padding-top:6px;} /* 정원 9칸 균등 배치 */
+  .roster-grid:not(.list-mode) .roster-students .roster-empty-students{grid-row:1/4;align-self:start;padding-top:6px;}
+  .roster-grid:not(.list-mode) .roster-student{align-self:center;}
   .roster-grid.list-mode .roster-student .roster-en-input{flex:0 0 64px;}
   .roster-grid.list-mode .roster-card.expanded .roster-add-student{display:flex;max-width:460px;}
   .roster-grid.list-mode .roster-card.expanded .roster-full{display:block;text-align:left;}
@@ -561,6 +575,8 @@
     .att-print-wrap{padding:0!important;max-width:none!important;}
     #analyticsPrintArea, #analyticsPrintArea *{visibility:visible;}
     #analyticsPrintArea{display:block;position:absolute;left:0;top:0;width:100%;background:#fff;}
+    #bookOrderSubmitArea, #bookOrderSubmitArea *{visibility:visible;}
+    #bookOrderSubmitArea{display:block;position:absolute;left:0;top:0;width:100%;background:#fff;}
     #tuitionReceiptArea, #tuitionReceiptArea *{visibility:visible;}
     #tuitionReceiptArea{display:block;position:absolute;left:0;top:0;width:100%;background:#fff;}
     .no-print{display:none!important;}
@@ -619,7 +635,7 @@
   }
 
   /* ---------- 모바일 전용 레이아웃: 라이트 헤더 + 플로팅 독 ---------- */
-  #mHeader, #mDock, #mDim, #mSheet, #mAdd{display:none;}
+  #mHeader, #mDock, #mDim, #mSheet, #mAdd, #mGreet{display:none;}
   @media (max-width:820px){
     body{background:#F4F7FA;background-attachment:scroll;}
     .modal-card{box-sizing:border-box;width:100%!important;max-width:420px!important;padding:22px 18px;}
@@ -701,6 +717,216 @@
     .cal-day{min-height:52px;padding:4px;border-radius:7px;}
     .cal-weekday{font-size:11px;padding:2px 0 6px;}
     .cal-holiday-label{font-size:8.5px;}
+  }
+
+  /* ---------- 모바일 L 스타일 (토스풍: 흰 배경 · 큰 제목 · 파란 포인트 하나) ---------- */
+  .m-only{display:none;}
+  @media (max-width:820px){
+    :root{--gold:#3182F6;--gold-soft:#E8F3FF;--ink:#191F28;--ink-soft:#4E5968;--muted:#8B95A1;--line:#E5E8EB;--paper:#F2F4F6;--radius:20px;}
+    body, .content-col{background:#fff;}
+    .m-only{display:block;}
+    .main{padding:2px 16px calc(112px + env(safe-area-inset-bottom));}
+    #appRoot::after{display:none;}
+
+    /* 헤더: ION ENGLISH + 벨 + 인사말 */
+    #mHeader{display:block;background:#fff;padding:calc(14px + env(safe-area-inset-top)) 22px 6px;}
+    #mHeader .mh-top{display:flex;align-items:center;justify-content:space-between;}
+    #mHeader .mh-brand{font-family:'Poppins','Pretendard',sans-serif;font-size:26px;font-weight:800;letter-spacing:-.8px;line-height:1.1;background:linear-gradient(180deg,#4F96FF,#2A6FE8);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 1px 1px rgba(29,95,216,.12));}
+    #mHeader .mh-brand small{font-size:11px;letter-spacing:.24em;font-weight:600;-webkit-text-fill-color:#8B95A1;margin-left:8px;}
+    #mHeader #mHdrStats{all:unset;cursor:pointer;width:42px;height:42px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(25,31,40,.12);display:flex;align-items:center;justify-content:center;color:#333D4B;}
+    #mHeader #mHdrStats svg{width:20px;height:20px;}
+    #mHeader .mh-greet{font-size:30px;line-height:1.28;font-weight:800;letter-spacing:-1px;color:#191F28;margin:22px 0 10px;}
+    #appRoot[data-view]:not([data-view="home"]) #mHeader .mh-greet{display:none;}
+    #appRoot[data-view]:not([data-view="home"]) #mHeader{padding-bottom:10px;}
+
+    /* 페이지 제목 */
+    .page-head{margin:6px 6px 14px;}
+    .page-head h1{font-size:28px;font-weight:800;letter-spacing:-1px;color:#191F28;}
+    .page-head p{font-size:13.5px;color:#8B95A1;margin-top:4px;}
+    #view-timetable .page-head p{display:none;}
+
+    /* 카드 · 입력 · 버튼 */
+    .card{background:#F7F8FA;box-shadow:none;border:0;border-radius:20px;padding:18px;}
+    input[type=text], input[type=password], input[type=number], input[type=month], input[type=date], input[type=time], #ev_time, select, textarea, .search{
+      background:#fff;border:1px solid #E5E8EB;border-radius:12px;font-size:16px;}
+    .btn{border-radius:14px;font-size:14px;padding:11px 16px;}
+    .btn.gold{background:#3182F6;color:#fff;box-shadow:none;}
+    .btn.ghost{background:#fff;border:1px solid #E5E8EB;color:#333D4B;}
+    .section-title{font-size:16px;font-weight:700;}
+
+    /* 오늘 요약 (홈) */
+    .mt-sum{background:#F2F4F6;border-radius:22px;padding:20px 20px 18px;margin:0 0 14px;}
+    .mt-sumtx{font-size:21px;font-weight:700;letter-spacing:-.6px;line-height:1.4;color:#191F28;}
+    .mt-sumtx em{font-style:normal;color:#3182F6;}
+    .mt-sumsub{font-size:13.5px;color:#6B7684;margin-top:6px;}
+    .mt-short{display:flex;gap:10px;margin-bottom:22px;}
+    .mt-short button{all:unset;cursor:pointer;flex:1;background:#fff;border:1px solid #E5E8EB;border-radius:16px;padding:14px 0 12px;text-align:center;font-size:13px;font-weight:600;color:#4E5968;box-sizing:border-box;}
+    .mt-short button svg{display:block;width:22px;height:22px;margin:0 auto 6px;color:#3182F6;}
+    .mt-short button:active{background:#F2F4F6;}
+    .mt-h2{font-size:18px;font-weight:700;letter-spacing:-.4px;margin:6px 6px 6px;color:#191F28;}
+    .mt-it{display:flex;align-items:center;gap:14px;padding:12px 6px;}
+    .mt-ic{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:15px;flex:none;}
+    .mt-tx{min-width:0;}
+    .mt-tx b{display:block;font-size:16.5px;font-weight:600;color:#191F28;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .mt-tx small{display:block;font-size:13px;color:#8B95A1;margin-top:1px;}
+    .mt-r{margin-left:auto;text-align:right;font-size:15px;font-weight:700;color:#191F28;flex:none;}
+    .mt-r small{display:block;font-size:12px;color:#8B95A1;font-weight:500;}
+    .mt-empty{padding:14px 6px 18px;font-size:14px;color:#8B95A1;}
+    #mTtDay .mt-it{border-left:4px solid var(--c,#3182F6);padding-left:12px;margin:6px 0;background:#F7F8FA;border-radius:0 16px 16px 0;}
+    .mt-days{display:flex;gap:6px;margin:0 0 12px;}
+    .mt-days button{all:unset;cursor:pointer;flex:1;text-align:center;padding:12px 0;border-radius:14px;background:#F2F4F6;color:#6B7684;font-size:15px;font-weight:700;position:relative;box-sizing:border-box;}
+    .mt-days button.on{background:#3182F6;color:#fff;}
+    .mt-days button i{position:absolute;left:50%;bottom:5px;width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.7;transform:translateX(-50%);}
+
+    /* 캘린더 */
+    .cal-card{background:#fff;padding:6px 0;}
+    .cal-title{font-size:19px;}
+    .cal-day{border:0;background:transparent;min-height:50px;border-radius:12px;}
+    .cal-day.today{border:0;background:#E8F3FF;}
+    .cal-day.today .cal-day-num{color:#3182F6;}
+    .cal-day.selected{background:#3182F6;border:0;}
+    .cal-day.selected .cal-day-num{color:#fff;}
+    .cal-day.holiday, .cal-day.academy-holiday{background:transparent;}
+    .cal-day.holiday.selected, .cal-day.academy-holiday.selected{background:#3182F6;}
+
+    /* 학생 목록 → 리스트 */
+    .student-grid{display:flex!important;flex-direction:column;gap:0;}
+    .student-card{display:flex;align-items:center;gap:14px;padding:12px 6px;border:0;border-bottom:1px solid #F2F4F6;border-radius:0;background:transparent;transform:none!important;}
+    .student-card .sav{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#E8F3FF;color:#1B64DA;font-weight:700;font-size:16px;flex:none;}
+    .student-card .sbody{min-width:0;}
+    .student-card h3{font-family:var(--sans);font-size:16.5px;font-weight:600;margin:0;}
+    .student-card .meta{font-size:13px;margin-top:1px;}
+    .student-card .count{margin:0 0 0 auto;font-size:12px;font-weight:700;color:#1B64DA;background:#E8F3FF;padding:5px 10px;border-radius:8px;flex:none;}
+    .group-heading{border-bottom:0;margin:22px 6px 2px;}
+    .group-heading span:first-child{font-size:17px;font-weight:700;}
+
+    /* 하단 탭바 + 플로팅 추가 버튼 */
+    #mDock{display:grid;left:0;right:0;bottom:0;height:calc(64px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);
+      grid-template-columns:repeat(4,1fr);background:rgba(255,255,255,.97);border-radius:0;box-shadow:none;border-top:1px solid #F2F4F6;}
+    #mDock button{color:#B0B8C1;font-size:10.5px;gap:3px;justify-content:center;}
+    #mDock button::after{display:none;}
+    #mDock button.on{color:#191F28;}
+    #mDock button.on svg{color:#3182F6;}
+    #mDock button.fab{position:fixed;right:18px;bottom:calc(80px + env(safe-area-inset-bottom));width:54px;height:54px;margin:0;
+      background:#3182F6;box-shadow:0 8px 20px rgba(49,130,246,.45);color:#fff;}
+    #mDock button.fab.open{background:#191F28;}
+    .toast{bottom:calc(84px + env(safe-area-inset-bottom));}
+
+    /* 더보기 · 빠른 추가 시트 */
+    #mSheet, #mAdd{border-radius:24px 24px 0 0;padding:14px 18px calc(84px + env(safe-area-inset-bottom));}
+    #mSheet h4, #mAdd h4{font-size:15px;color:#191F28;font-weight:700;margin-bottom:14px;}
+    #mSheet .g{grid-template-columns:repeat(4,1fr);gap:16px 4px;}
+    #mSheet .g button{background:none;padding:0;gap:8px;font-size:12px;font-weight:600;color:#333D4B;text-align:center;}
+    #mSheet .g button svg{box-sizing:border-box;width:54px;height:54px;padding:15px;border-radius:18px;background:#F2F4F6;color:#3182F6;}
+    #mSheet .g button.on{background:none;color:#3182F6;}
+    #mSheet .g button.on svg{background:#E8F3FF;}
+    #mAdd .g{grid-template-columns:1fr;gap:8px;}
+    #mAdd .g button{background:#F7F8FA;border-radius:16px;font-size:15px;}
+    #mSheet.show ~ #mDock button.fab{display:none;}
+    .btn{white-space:nowrap;}
+    #view-dashboard .toolbar > div:first-child{display:block!important;}
+    #studentSearch{width:100%!important;max-width:none!important;box-sizing:border-box;}
+    #view-tuition .toolbar > div{flex-wrap:wrap!important;}
+    #view-tuition .toolbar .btn{flex:1 1 auto;justify-content:center;}
+    #view-dashboard .toolbar, #view-dashboard .toolbar > div{width:100%;}
+    #view-dashboard .toolbar > div:first-child .search, #studentSearch{width:100%!important;flex:1 1 100%;}
+    #view-dashboard .toolbar > div:last-child .btn{flex:1;justify-content:center;}
+    .group-heading{padding-bottom:0;margin-bottom:0;}
+
+    /* ---- 시안(L)과 동일하게 맞춤 ---- */
+    .d-only{display:none!important;}
+    #mDock button.fab{display:none!important;}
+    .cal-card{display:none!important;}
+    .dash-grid{margin-top:6px!important;}
+    .mt-att{background:#F2F4F6;border-radius:28px;padding:22px;margin:0 0 14px;}
+    .mt-att small{font-size:13.5px;color:#6B7684;}
+    .mt-att b{display:block;font-size:34px;letter-spacing:-1px;font-weight:700;margin:4px 0 16px;color:#191F28;}
+    .mt-att .row{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+    .mt-att button{all:unset;cursor:pointer;background:#fff;color:#3182F6;border:1px solid #E5E8EB;border-radius:99px;padding:9px 17px;font-size:14px;font-weight:700;flex:none;}
+    .mt-short button{border-radius:16px;}
+
+    /* 학생 */
+    /* 교재 주문: 표 → 카드 */
+    #bo_listWrap .card{overflow:visible!important;background:none!important;box-shadow:none!important;border:0!important;}
+    #bo_listWrap .bo-grid{display:block;font-size:14px;}
+    #bo_listWrap .bo-head-cell{display:none!important;}
+    #bo_listWrap .bo-row-group{display:grid!important;grid-template-columns:1fr 1fr;gap:10px 10px;background:#fff;border:1px solid #E6EBF3;border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 2px 8px -4px rgba(25,45,90,.12);}
+    #bo_listWrap .bo-cell{display:block;padding:0;border:0;position:relative;}
+    #bo_listWrap .bo-cell::before{display:block;font-size:11px;font-weight:700;color:#8B95A5;margin-bottom:4px;}
+    #bo_listWrap .bo-cell:nth-child(1)::before{content:'신청일';}
+    #bo_listWrap .bo-cell:nth-child(2)::before{content:'반/과정명';}
+    #bo_listWrap .bo-cell:nth-child(3)::before{content:'도서명(교재명)';}
+    #bo_listWrap .bo-cell:nth-child(4)::before{content:'수량';}
+    #bo_listWrap .bo-cell:nth-child(5)::before{content:'신청교사';}
+    #bo_listWrap .bo-cell:nth-child(6)::before{content:'주문상태';}
+    #bo_listWrap .bo-cell:nth-child(7)::before{content:'비고';}
+    #bo_listWrap .bo-cell:nth-child(8)::before{display:none;}
+    #bo_listWrap .bo-cell:nth-child(3), #bo_listWrap .bo-cell:nth-child(7), #bo_listWrap .bo-cell:nth-child(8){grid-column:1 / -1;}
+    #bo_listWrap .bo-cell:nth-child(3){order:-1;}
+    #bo_listWrap .bo-cell input, #bo_listWrap .bo-cell select{width:100%!important;height:40px!important;font-size:14px!important;box-sizing:border-box;}
+    #bo_listWrap .bo-cell:nth-child(8){text-align:right;}
+    #bo_listWrap .bo-del-btn{height:34px;padding:0 14px;font-size:13px;}
+    /* 교재 주문서 미리보기 */
+    #bookOrderSubmitArea > .no-print{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important;padding:0 16px!important;margin:16px auto!important;}
+    #bookOrderSubmitArea > .no-print .btn{width:100%;justify-content:center;margin:0!important;}
+    #bookOrderSubmitArea > .no-print #closeBookOrderSubmit{grid-column:1 / -1;}
+    #bookOrderSubmitArea > .no-print .btn{box-sizing:border-box;min-width:0;}
+    .book-order-doc th{white-space:nowrap;}
+    .book-order-doc td:nth-child(2){white-space:nowrap;}
+    .book-order-doc{margin:0 16px!important;max-width:none!important;}
+    .book-order-doc-hd{padding:22px 20px!important;}
+    .book-order-doc-bd{padding:10px 12px 18px!important;}
+    .book-order-doc td{padding:12px 8px!important;}
+    .m-head{display:flex;align-items:center;justify-content:space-between;}
+    .m-head h1{margin:0;}
+    .m-head h1 em{display:none;}
+    .m-head button{all:unset;cursor:pointer;font-size:14px;font-weight:700;color:#3182F6;padding:8px 4px;}
+    #view-dashboard .toolbar{margin-top:6px;}
+    #view-dashboard .toolbar > div:last-child{display:none!important;}
+    #studentSearch{background:#F2F4F6!important;border:0!important;border-radius:14px!important;padding:14px 16px!important;}
+    .cm-class-tabs{flex-wrap:nowrap;overflow-x:auto;gap:8px;margin:10px 0 6px;padding:2px 2px 6px;scrollbar-width:none;}
+    .cm-class-tabs::-webkit-scrollbar{display:none;}
+    .cm-class-tab{flex:none;border-radius:99px;box-shadow:none;transform:none;font-size:13.5px;font-weight:700;padding:8px 15px;border:2px solid transparent;white-space:nowrap;opacity:.55;}
+    .cm-class-tab.active{opacity:1;border-color:currentColor;box-shadow:none;transform:none;}
+    .cm-class-tab.cm-class-tab-neutral{background:#F2F4F6!important;color:#6B7684!important;border:2px solid transparent!important;opacity:1;}
+    .cm-class-tab.cm-class-tab-neutral.active{background:#191F28!important;color:#fff!important;border-color:#191F28!important;}
+    #studentGroupTabs{flex-wrap:nowrap!important;overflow-x:auto;}
+    #studentGroupTabs .cm-class-tab{white-space:nowrap!important;word-break:keep-all;display:block;flex:none!important;width:auto!important;}
+    .student-card{padding:14px 6px;}
+    .student-card .count{display:none;}
+    .student-card .rstat{display:inline-block;margin-left:auto;font-size:12.5px;font-weight:600;padding:5px 10px;border-radius:8px;flex:none;}
+    .student-card .rstat.ok{background:#E8F3FF;color:#1B64DA;}
+    .student-card .rstat.no{background:#FFF3E0;color:#C25E00;}
+    .group-heading{margin:16px 6px 0;}
+    .group-heading span:first-child{font-size:13px;font-weight:700;color:#8B95A1;}
+
+    /* 시간표 */
+    #view-timetable .page-head{margin-bottom:10px;}
+    .mt-days{gap:4px;margin:0 0 6px;}
+    .mt-days button{background:transparent;color:#8B95A1;font-size:12px;font-weight:600;padding:9px 0;border-radius:14px;}
+    .mt-days button b{display:block;font-size:17px;color:#191F28;margin-top:3px;font-weight:600;}
+    .mt-days button.on{background:#3182F6;}
+    .mt-days button.on, .mt-days button.on b{color:#fff;}
+    .mt-days button i{display:none;}
+    .mt-tl{display:flex;align-items:center;gap:14px;padding:15px 8px;}
+    .mt-tl .tm{width:46px;font-size:14px;font-weight:600;color:#6B7684;flex:none;}
+    .mt-tl .bar{width:4px;height:44px;border-radius:3px;flex:none;}
+    .mt-tl b{display:block;font-size:17px;font-weight:600;color:#191F28;}
+    .mt-tl small{display:block;font-size:13px;color:#8B95A1;margin-top:1px;}
+    #mTtDay .mt-it{display:none;}
+    .mt-edit{all:unset;cursor:pointer;display:block;box-sizing:border-box;width:100%;text-align:center;margin:18px 0 10px;padding:14px 0;border-radius:14px;background:#F2F4F6;color:#4E5968;font-size:15px;font-weight:600;}
+    #view-timetable:not(.m-edit) .toolbar, #view-timetable:not(.m-edit) > .card{display:none;}
+
+    /* ---- A 스타일: 흰 헤더 + 가는 구분선 · 흰 바탕 ---- */
+    #mHeader{background:linear-gradient(180deg,#FFFFFF 0%,#F8FAFD 100%);border-bottom:1px solid #E5EAF2;box-shadow:0 3px 8px -4px rgba(25,45,90,.10);position:relative;z-index:5;padding:calc(14px + env(safe-area-inset-top)) 22px 14px!important;}
+    #appRoot[data-view]:not([data-view="home"]) #mHeader{padding-bottom:14px!important;}
+    #mGreet{display:block;font-size:18px;line-height:1.3;font-weight:800;letter-spacing:-.6px;color:#191F28;margin:0;padding:20px 24px 14px;}
+    #mGreet span{white-space:pre;}
+    #appRoot[data-view]:not([data-view="home"]) #mGreet{display:none;}
+    .page-head{margin:14px 8px 12px;}
+    .page-head h1{font-size:20px;letter-spacing:-.6px;}
+    .mt-att b{font-size:28px;}
+    .mt-h2{font-size:16px;margin-top:16px;}
   }
 
   .toast{
@@ -1039,14 +1265,22 @@
   .bo-status.bo-status-done{background:var(--sage-soft);color:#2F5E3D;border-color:transparent;}
   .bo-del-btn{height:26px;box-sizing:border-box;display:inline-flex;align-items:center;border:1px solid var(--line);background:#fff;border-radius:6px;padding:0 8px;font-size:11px;font-family:var(--sans);color:var(--ink-soft);cursor:pointer;white-space:nowrap;}
   .bo-del-btn:hover{background:var(--paper);}
-  .book-order-doc{max-width:520px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:14px;padding:32px 30px;font-family:var(--sans);}
-  .book-order-doc-title{font-family:var(--serif);font-size:20px;font-weight:700;color:var(--ink);text-align:center;}
-  .book-order-doc-sub{text-align:center;color:var(--muted);font-size:12.5px;margin-top:4px;margin-bottom:18px;}
-  .book-order-doc-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);margin-bottom:14px;}
-  .book-order-doc table{width:100%;border-collapse:collapse;font-size:12.5px;}
-  .book-order-doc th{background:var(--paper);color:var(--ink-soft);font-size:11px;font-weight:700;padding:8px;text-align:left;}
-  .book-order-doc td{padding:8px;border-bottom:1px solid #EEF0F4;}
-  .book-order-doc-empty{text-align:center;color:var(--muted);font-size:12.5px;padding:20px 0;}
+  #bookOrderSubmitArea{background:#F4F7FA;min-height:100vh;padding-top:1px;}
+  .book-order-doc{max-width:520px;margin:0 auto;background:#fff;border-radius:20px;overflow:hidden;font-family:var(--sans);box-shadow:0 14px 34px -18px rgba(25,45,90,.30);}
+  .book-order-doc-hd{background:linear-gradient(135deg,#4C86DC,#2F5FAE);color:#fff;padding:26px 28px;}
+  .book-order-doc-title{font-size:21px;font-weight:800;}
+  .book-order-doc-sub{opacity:.8;font-size:12px;margin-top:4px;}
+  .book-order-doc-meta{display:flex;gap:28px;margin-top:18px;}
+  .book-order-doc-meta div{font-size:11px;opacity:.78;}
+  .book-order-doc-meta b{display:block;font-size:15px;margin-top:3px;opacity:1;}
+  .book-order-doc-bd{padding:12px 20px 24px;}
+  .book-order-doc table{width:100%;border-collapse:separate;border-spacing:0 6px;font-size:13px;}
+  .book-order-doc th{color:#8B95A5;font-size:11px;font-weight:700;padding:8px 10px;text-align:left;}
+  .book-order-doc td{padding:13px 10px;background:#F7F9FC;color:#1d2b45;}
+  .book-order-doc td:first-child{border-radius:12px 0 0 12px;color:#8B95A5;width:36px;}
+  .book-order-doc td:last-child{border-radius:0 12px 12px 0;font-weight:800;text-align:right;}
+  .book-order-doc th:last-child{text-align:right;}
+  .book-order-doc-empty{text-align:center;color:var(--muted);font-size:12.5px;padding:28px 0;}
   .tuition-receipt{max-width:400px;margin:0 auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(30,50,90,.14);font-family:var(--sans);}
   .tr-head{background:linear-gradient(135deg,#1c2f52,#3d5f96);color:#fff;padding:28px 30px 24px;}
   .tr-brand{font-weight:800;letter-spacing:.14em;font-size:14px;}
@@ -1269,6 +1503,20 @@
         <button class="btn ghost" id="statsBtn" style="flex:none;"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" style="vertical-align:-2px;margin-right:5px;"><rect x="1" y="7" width="3" height="6" rx="0.5" fill="currentColor"/><rect x="5.5" y="3" width="3" height="10" rx="0.5" fill="currentColor"/><rect x="10" y="5" width="3" height="8" rx="0.5" fill="currentColor"/></svg>요약 보기</button>
       </div>
 
+      <div id="mToday" class="m-only">
+        <div id="mt_att"></div>
+        <div class="mt-short">
+          <button type="button" data-mgo="classmgmt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>출석</button>
+          <button type="button" data-mgo="homework"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/></svg>숙제</button>
+          <button type="button" data-mgo="vehicle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="14" rx="3"/><path d="M4 11h16M7 20v-2.5M17 20v-2.5"/></svg>차량</button>
+          <button type="button" data-mgo="__event"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>일정</button>
+        </div>
+        <div class="mt-h2" id="mt_h2l">이어서</div>
+        <div id="mt_lessons"></div>
+        <div class="mt-h2">오늘 일정</div>
+        <div id="mt_events"></div>
+      </div>
+
       <div class="dash-grid" style="margin-top:18px;">
         <div class="card cal-card">
           <div class="cal-header">
@@ -1337,8 +1585,9 @@
     <!-- ============ DASHBOARD ============ -->
     <section id="view-dashboard">
       <div class="page-head">
-        <h1>학생 관리</h1>
-        <p>학생을 등록하고, 학생별 월간 리포트를 작성하세요.</p>
+        <h1 class="d-only">학생 관리</h1>
+        <p class="d-only">학생을 등록하고, 학생별 월간 리포트를 작성하세요.</p>
+        <div class="m-head m-only"><h1>학생 <em id="mStuN"></em></h1><button type="button" id="mStuAdd">+ 학생 추가</button></div>
       </div>
       <div class="toolbar">
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -1429,7 +1678,8 @@
     <!-- ============ TIMETABLE ============ -->
     <section id="view-timetable">
       <div class="page-head">
-        <h1>시간표</h1>
+        <h1 class="d-only">시간표</h1>
+        <h1 class="m-only" id="mTtTitle"></h1>
         <p>학원 운영시간(오후 1시 ~ 8시) 동안 요일별로 반을 1시간 단위로 배치하세요. 같은 시간에 여러 반이 있으면 칸 안에 세로로 표시됩니다. 칸의 + 버튼을 눌러 반을 추가하고, 배치된 반을 클릭하면 해당 반 관리 화면으로 이동합니다.</p>
       </div>
       <div class="toolbar" style="margin-top:14px;">
@@ -1449,6 +1699,11 @@
           <button class="btn gold sm" id="tt_bulkApply">적용</button>
           <button class="btn ghost sm" id="tt_bulkDone">완료</button>
         </div>
+      </div>
+      <div id="mTtDay" class="m-only">
+        <div class="mt-days" id="mTt_days"></div>
+        <div id="mTt_list"></div>
+        <button type="button" id="mTtEditBtn" class="mt-edit">시간표 편집</button>
       </div>
       <div class="card" style="overflow-x:auto;margin-top:10px;">
         <table id="tt_table" class="tt-table"></table>
@@ -2170,7 +2425,7 @@
 <div id="printArea" style="display:none;">
   <div style="max-width:820px;margin:24px auto;padding:0 16px;" class="no-print">
     <button class="btn ghost" id="closePreview">← 편집으로 돌아가기</button>
-    <button class="btn gold" id="doPrintBtn" style="margin-left:8px;">인쇄 / PDF 저장</button>
+    <button class="btn gold" id="doPrintBtn" >인쇄 / PDF 저장</button>
     <button class="btn gold" id="copyImageBtn" style="margin-left:8px;">클립보드로 복사</button>
     <button class="btn ghost" id="saveImageBtn" style="margin-left:8px;">이미지로 저장</button>
     <button class="btn ghost" id="shareImageBtn" style="margin-left:8px;display:none;">공유하기</button>
@@ -2182,7 +2437,7 @@
 <div id="attendancePrintArea" style="display:none;">
   <div style="max-width:1050px;margin:24px auto;padding:0 16px;" class="no-print">
     <button class="btn ghost" id="closeAttPreview">← 편집으로 돌아가기</button>
-    <button class="btn gold" id="doAttPrintBtn" style="margin-left:8px;">인쇄</button>
+    <button class="btn gold" id="doAttPrintBtn" >인쇄</button>
   </div>
   <div class="att-note-box no-print" id="attNoteBox"></div>
   <div class="att-print-wrap" id="attLetterContent"></div>
@@ -2192,7 +2447,7 @@
 <div id="analyticsPrintArea" style="display:none;">
   <div style="max-width:820px;margin:24px auto;padding:0 16px;" class="no-print">
     <button class="btn ghost" id="closeAnalyticsPreview">← 편집으로 돌아가기</button>
-    <button class="btn gold" id="doAnalyticsPrintBtn" style="margin-left:8px;">인쇄 / PDF 저장</button>
+    <button class="btn gold" id="doAnalyticsPrintBtn" >인쇄 / PDF 저장</button>
     <button class="btn gold" id="copyAnalyticsImageBtn" style="margin-left:8px;">클립보드로 복사</button>
     <button class="btn ghost" id="saveAnalyticsImageBtn" style="margin-left:8px;">이미지로 저장</button>
     <button class="btn ghost" id="shareAnalyticsImageBtn" style="margin-left:8px;display:none;">공유하기</button>
@@ -2216,12 +2471,12 @@
 </div>
 
 <div id="bookOrderSubmitArea" style="display:none;">
-  <div style="max-width:600px;margin:24px auto;padding:0 16px;" class="no-print">
+  <div style="max-width:640px;margin:24px auto;padding:0 16px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;" class="no-print">
     <button class="btn ghost" id="closeBookOrderSubmit">← 목록으로 돌아가기</button>
-    <button class="btn ghost" id="doBookOrderPrintBtn" style="margin-left:8px;">인쇄</button>
-    <button class="btn gold" id="copyBookOrderImageBtn" style="margin-left:8px;">클립보드로 복사</button>
-    <button class="btn ghost" id="saveBookOrderImageBtn" style="margin-left:8px;">이미지로 저장</button>
-    <button class="btn ghost" id="shareBookOrderImageBtn" style="margin-left:8px;display:none;">공유하기</button>
+    <button class="btn ghost" id="doBookOrderPrintBtn" >인쇄</button>
+    <button class="btn gold" id="copyBookOrderImageBtn">클립보드로 복사</button>
+    <button class="btn ghost" id="saveBookOrderImageBtn">이미지로 저장</button>
+    <button class="btn ghost" id="shareBookOrderImageBtn" style="display:none;">공유하기</button>
   </div>
   <div class="book-order-doc" id="bookOrderSubmitContent"></div>
   <div style="height:40px;" class="no-print"></div>
@@ -2460,9 +2715,8 @@
     </div>
     <div class="field">
       <label>수업 선생님 <span style="font-weight:400;color:var(--muted);">(담임과 별개 · 선택)</span></label>
-      <input type="text" id="tt_teacherInput" list="tt_teacherSuggestions" placeholder="예: Cathy" autocomplete="off">
+      <div id="tt_teacherWrap"></div>
       <datalist id="tt_teacherSuggestions"></datalist>
-      <div class="tt-quick" data-target="tt_teacherInput"><button type="button" data-t="John">John</button><button type="button" data-t="James">James</button><span style="font-size:11.5px;color:var(--muted);">원어민</span></div>
     </div>
     <div style="display:flex;justify-content:space-between;gap:8px;margin-top:16px;">
       <button class="btn danger" id="tt_deleteBtn" style="display:none;">삭제</button>
@@ -2908,6 +3162,7 @@
   }
   ttBulkInit();
   function renderTimetable(){
+    renderMTimetable();
     const table = document.getElementById('tt_table');
 
     let head = `<tr><th class="tt-time-col">시간</th>${TT_DAYS.map(d=>`<th>${TT_DAY_LABEL[d]}</th>`).join('')}</tr>`;
@@ -2924,7 +3179,7 @@
           const endLabel = ttEndTime(b.slot + b.span);
           return `<div class="tt-chip" style="background:${c.bg};color:${c.fg};" data-blockid="${escapeAttr(b.id)}" data-day="${day}" data-classname="${escapeAttr(b.className)}" title="클릭하면 '${escapeAttr(b.className)}' 반 관리로 이동합니다">
             <div>${escapeHtml(b.className)}</div>
-            ${(slot===b.slot && b.teacher) ? (TT_FOREIGN_TEACHERS.includes(b.teacher) ? `<span class="tt-chip-pill">${escapeHtml(b.teacher)}</span>` : `<span class="tt-chip-sep">|</span><div class="tt-chip-time">${escapeHtml(b.teacher)}</div>`) : ''}
+            ${(()=>{ const t = ttHourTeacher(b, slot); return t ? (TT_FOREIGN_TEACHERS.includes(t) ? `<span class="tt-chip-pill">${escapeHtml(t)}</span>` : `<span class="tt-chip-sep">|</span><div class="tt-chip-time">${escapeHtml(t)}</div>`) : ''; })()}
             <span class="tt-chip-edit" data-blockid="${escapeAttr(b.id)}" data-day="${day}" title="시간 수정 · 삭제">✎</span>
           </div>`;
         }).join('');
@@ -2956,7 +3211,7 @@
     table.querySelectorAll('.tt-chip-edit').forEach(el=>{
       el.addEventListener('click', (e)=>{
         e.stopPropagation();
-        openTtModal(Number(el.dataset.day), null, el.dataset.blockid);
+        openTtModal(Number(el.dataset.day), null, el.dataset.blockid, Number(el.closest('td').dataset.slot));
       });
     });
   }
@@ -3078,7 +3333,7 @@
         </div>
         ${c.unassigned ? '' : `<div class="roster-row"><span class="roster-label">담당</span><span style="font-size:12.5px;color:var(--ink-soft);">${classTeachers[c.name] ? escapeHtml(classTeachers[c.name]) : '미지정'}</span></div>`}
         <div class="roster-row"><span class="roster-label">수업시간</span><div class="roster-schedule-tags">${scheduleHtml}</div></div>
-        ${c.unassigned ? '' : `<div class="roster-tb-grid">${TB_FIELDS.map(([k,label])=>`<label class="roster-tb-cell"><span>${label}</span><input type="text" class="roster-textbook-input" data-class="${escapeAttr(c.name)}" data-field="${k}" placeholder="교재" value="${escapeAttr(tbObj[k]||'')}"></label>`).join('')}</div>`}
+        ${c.unassigned ? '' : `<div class="roster-tb-grid">${TB_FIELDS.map(([k,label])=>`<label class="roster-tb-cell"><span>${label}</span><input type="text" class="roster-textbook-input" data-class="${escapeAttr(c.name)}" data-field="${k}" placeholder="교재" title="${escapeAttr(tbObj[k]||'')}" value="${escapeAttr(tbObj[k]||'')}"></label>`).join('')}</div>`}
         <button type="button" class="roster-list-toggle" data-class="${escapeAttr(c.name)}">학생 ${c.list.length}명 <b>▾</b></button>
         <div class="roster-students">${studentsHtml}</div>
       `;
@@ -3176,6 +3431,7 @@
       });
     });
     grid.querySelectorAll('.roster-textbook-input').forEach(inp=>{
+      inp.addEventListener('input', ()=>{ inp.title = inp.value; });
       inp.addEventListener('change', ()=>{
         const cur = classTextbooks[inp.dataset.class];
         const obj = (cur && typeof cur==='object') ? cur : { reading: cur||'' };
@@ -3254,21 +3510,53 @@
   function ttTeacherNames(){
     // 일반 선생님 먼저, 원어민(John·James)은 목록 맨 아래
     const set = new Set();
-    timetable.forEach(b=>{ if(b.teacher && !TT_FOREIGN_TEACHERS.includes(b.teacher)) set.add(b.teacher); });
+    timetable.forEach(b=>{ [b.teacher, ...(b.hourTeachers||[])].forEach(t=>{ if(t && !TT_FOREIGN_TEACHERS.includes(t)) set.add(t); }); });
     Object.values(classTeachers||{}).forEach(t=>{ if(t && !TT_FOREIGN_TEACHERS.includes(t)) set.add(t); });
     return [...set, ...TT_FOREIGN_TEACHERS];
   }
-  function openTtModal(day, slot, blockId){
+  // 시간별 선생님: b.hourTeachers[i] = (b.slot+i)시 수업 선생님, 없으면 b.teacher
+  function ttHourTeacher(b, slot){
+    const v = b.hourTeachers && b.hourTeachers[slot - b.slot];
+    return (v === undefined || v === null) ? (b.teacher||'') : v;
+  }
+  let ttHourT = [];
+  function ttTeacherOptions(cur){
+    const names = [];
+    const add = n=>{ n = (n||'').trim(); if(n && !names.includes(n)) names.push(n); };
+    (teacherRoster||[]).forEach(add); ttTeacherNames().forEach(add); add(cur);
+    return '<option value="">선택 안 함 (담임 선생님과 동일)</option>' + names.map(n=>`<option value="${escapeAttr(n)}">${escapeHtml(n)}</option>`).join('');
+  }
+  function ttRenderHourTeachers(){
+    const wrap = document.getElementById('tt_teacherWrap');
+    wrap.querySelectorAll('select').forEach(sel=>{ ttHourT[Number(sel.dataset.i)] = sel.value; });
+    const span = Number(document.getElementById('tt_durationSelect').value) || 1;
+    const start = ttEditing ? ttEditing.slot : 0;
+    let html = '';
+    for(let i=0;i<span;i++){
+      if(ttHourT[i]===undefined) ttHourT[i] = i>0 ? (ttHourT[i-1]||'') : '';
+      const isF = span>1 && ttFocusSlot===start+i;
+      const label = span>1 ? `<span style="flex:0 0 52px;font-size:12px;font-weight:${isF?800:700};color:${isF?'#2f6fc4':'var(--muted)'};">${ttSlotTime(start+i)}${isF?' ◀':''}</span>` : '';
+      html += `<div style="display:flex;align-items:center;gap:8px;padding:${isF?'6px':'0'};border-radius:10px;background:${isF?'#EAF2FF':'transparent'};${i?'margin-top:6px;':''}">${label}<select data-i="${i}" style="flex:1;">${ttTeacherOptions(ttHourT[i])}</select></div>`;
+    }
+    wrap.innerHTML = html;
+    wrap.querySelectorAll('select').forEach(sel=>{ sel.value = ttHourT[Number(sel.dataset.i)]||''; });
+  }
+  document.getElementById('tt_durationSelect').addEventListener('change', ttRenderHourTeachers);
+  let ttFocusSlot = null;
+  function openTtModal(day, slot, blockId, focusSlot){
+    ttFocusSlot = (focusSlot===undefined||isNaN(focusSlot)) ? null : focusSlot;
     const block = blockId ? timetable.find(b=>b.id===blockId) : null;
     ttEditing = {day, slot: block? block.slot : slot, blockId: blockId || null};
     document.getElementById('tt_modalTitle').textContent = block ? '반 배치 수정' : '반 배치';
     document.getElementById('tt_modalTime').textContent = `${TT_DAY_LABEL[day]}요일 · ${ttSlotTime(ttEditing.slot)} 시작`;
     document.getElementById('tt_classInput').value = block ? block.className : '';
-    document.getElementById('tt_teacherInput').value = block ? (block.teacher||'') : '';
     document.getElementById('tt_teacherSuggestions').innerHTML = ttTeacherNames().map(n=>`<option value="${escapeAttr(n)}">`).join('');
     const suggestions = document.getElementById('tt_classSuggestions');
     suggestions.innerHTML = getAllGroupNames().map(n=>`<option value="${escapeAttr(n)}">`).join('');
     ttPopulateDurationSelect(ttMaxSpanFrom(ttEditing.slot), block ? block.span : null);
+    ttHourT = block ? Array.from({length:block.span}, (_,i)=>ttHourTeacher(block, block.slot+i)) : [];
+    document.getElementById('tt_teacherWrap').innerHTML = '';
+    ttRenderHourTeachers();
     document.getElementById('tt_deleteBtn').style.display = block ? 'inline-flex' : 'none';
     document.getElementById('ttModalBackdrop').style.display = 'flex';
   }
@@ -3285,15 +3573,19 @@
     const name = document.getElementById('tt_classInput').value.trim();
     if(!name){ toast('반 이름을 입력해주세요.'); return; }
     const span = Number(document.getElementById('tt_durationSelect').value);
-    const teacher = document.getElementById('tt_teacherInput').value.trim();
+    ttRenderHourTeachers(); // 현재 선택값 수집
+    const hts = ttHourT.slice(0, span).map(v=>(v||'').trim());
+    const teacher = hts[0] || '';
+    const hourTeachers = hts.some(v=>v!==teacher) ? hts : null;
     const {day, slot, blockId} = ttEditing;
     // Overlapping classes at the same time are allowed on purpose (여러 반 동시 진행),
     // so no overlap check here — they're simply listed side by side in the cell.
     if(blockId){
       const b = timetable.find(x=>x.id===blockId);
       b.className = name; b.span = span; b.teacher = teacher;
+      if(hourTeachers) b.hourTeachers = hourTeachers; else delete b.hourTeachers;
     } else {
-      timetable.push({id:uid(), day, slot, span, className:name, teacher});
+      timetable.push(Object.assign({id:uid(), day, slot, span, className:name, teacher}, hourTeachers?{hourTeachers}:{}));
     }
     saveTimetable();
     closeTtModal();
@@ -3504,6 +3796,87 @@
     return 'etc';
   }
 
+  /* ---------- 모바일: 오늘 요약 / 시간표 일별 목록 ---------- */
+  const M_EV_LABEL = {class:'수업',test:'시험',consult:'상담',makeup:'보강',vehicle:'차량',holiday:'휴무',etc:'기타'};
+  const M_EV_COLOR = {class:'#3182F6',test:'#E5484D',consult:'#2DB873',makeup:'#F08A24',vehicle:'#14A8A0',holiday:'#8B95A1',etc:'#F5C400'};
+  function mDayBlocks(day){
+    return timetable.filter(b=>b.day===day).sort((a,b)=> a.slot-b.slot || classSortKey(a.className)-classSortKey(b.className));
+  }
+  function mLessonRow(b){
+    const col = ttColorFor(b.className) || {bg:'#E8F3FF',fg:'#1B64DA'};
+    const teacher = b.teacher || classTeachers[b.className] || '';
+    const n = students.filter(s=>s.group===b.className).length;
+    return `<div class="mt-it"><span class="mt-ic" style="background:${col.bg};color:${col.fg}">${escapeHtml((b.className||'?').replace(/^\d+시\s*/,'').charAt(0))}</span>
+      <div class="mt-tx"><b>${escapeHtml(b.className)}</b><small>${teacher?escapeHtml(teacher)+' 선생님 · ':''}${n}명</small></div>
+      <div class="mt-r">${ttSlotTime(b.slot)}</div></div>`;
+  }
+  function mTlRow(b){
+    const col = ttColorFor(b.className) || {bg:'#E8F3FF',fg:'#1B64DA'};
+    const teacher = b.teacher || classTeachers[b.className] || '';
+    const n = students.filter(s=>s.group===b.className).length;
+    return `<div class="mt-tl"><span class="tm">${ttSlotTime(b.slot)}</span><span class="bar" style="background:${col.fg}"></span>
+      <div><b>${escapeHtml(b.className)}</b><small>${teacher?escapeHtml(teacher)+' 선생님 · ':''}${n}명</small></div></div>`;
+  }
+  function renderMToday(){
+    const att = document.getElementById('mt_att'); if(!att) return;
+    const now = new Date();
+    const todayStr = ymd(now.getFullYear(), now.getMonth(), now.getDate());
+    const blocks = mDayBlocks(now.getDay());
+    const evs = events.filter(e=>e.date===todayStr).sort((a,b)=>(a.time||'99').localeCompare(b.time||'99'));
+    // 오늘 수업이 있는 반의 학생 중 출석 체크(출석·결석·보강)가 끝난 인원
+    const clsSet = new Set(blocks.map(b=>b.className));
+    const todays = students.filter(s=>clsSet.has(s.group));
+    const marked = todays.filter(s=>attendance[s.id+'::'+todayStr]).length;
+    const total = todays.length, pct = total ? Math.round(marked/total*100) : 0;
+    const nowMin = now.getHours()*60+now.getMinutes();
+    const upcoming = blocks.filter(b=> (TT_START_HOUR+b.slot+(b.span||1)-1)*60+TT_LESSON_MIN > nowMin);
+    if(upcoming.length){
+      const nb = upcoming[0], nt = nb.teacher || classTeachers[nb.className] || '', nn = students.filter(x=>x.group===nb.className).length;
+      att.innerHTML = `<div class="mt-att"><small>다음 수업 · ${ttSlotTime(nb.slot)}</small><b>${escapeHtml(nb.className)}</b>
+        <div class="row"><small>${nt?escapeHtml(nt)+' · ':''}${nn}명 · ${TT_LESSON_MIN}분${total?` · 출석 ${marked}/${total}`:''}</small><button type="button" data-mgo="classmgmt">출석 체크</button></div></div>`;
+    } else att.innerHTML = `<div class="mt-att"><small>${new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})}</small><b style="font-size:24px;margin-bottom:0">${blocks.length?'오늘 수업이 모두 끝났어요':'오늘은 수업이 없어요'}</b></div>`;
+    const rest = upcoming.slice(1);
+    document.getElementById('mt_h2l').style.display = rest.length ? '' : 'none';
+    document.getElementById('mt_lessons').innerHTML = rest.map(mLessonRow).join('');
+    document.getElementById('mt_events').innerHTML = evs.length ? evs.map(e=>`<div class="mt-it"><span class="mt-ic" style="background:${M_EV_COLOR[e.type]||'#8B95A1'}22;color:${M_EV_COLOR[e.type]||'#8B95A1'}">${M_EV_LABEL[e.type]||'기타'}</span>
+      <div class="mt-tx"><b>${escapeHtml(e.title||'')}</b>${e.memo?`<small>${escapeHtml(e.memo)}</small>`:''}</div><div class="mt-r">${e.time?escapeHtml(e.time):''}</div></div>`).join('') : '<div class="mt-empty">오늘 등록된 일정이 없어요</div>';
+  }
+  document.getElementById('mToday').addEventListener('click', e=>{
+    const b = e.target.closest('button[data-mgo]'); if(!b) return;
+    if(b.dataset.mgo==='__event'){
+      const t = document.getElementById('ev_title'); t.scrollIntoView({block:'center',behavior:'smooth'}); setTimeout(()=>t.focus({preventScroll:true}),250);
+    } else document.querySelector('.nav button[data-view="'+b.dataset.mgo+'"]').click();
+  });
+  let mTtSelDay = (()=>{ const d = new Date().getDay(); return d>=1&&d<=5 ? d : 1; })();
+  function mWeekMonday(){
+    const d = new Date(); d.setHours(0,0,0,0);
+    d.setDate(d.getDate() - ((d.getDay()+6)%7));
+    if(new Date().getDay()===0 || new Date().getDay()===6) d.setDate(d.getDate()+7); // 주말엔 다음 주
+    return d;
+  }
+  function renderMTimetable(){
+    const tabs = document.getElementById('mTt_days'); if(!tabs) return;
+    const mon = mWeekMonday(), todayDow = new Date().getDay();
+    const thu = new Date(mon); thu.setDate(mon.getDate()+3); // 목요일이 속한 달·주차 기준
+    const wk = Math.ceil((thu.getDate() + new Date(thu.getFullYear(), thu.getMonth(), 1).getDay()) / 7);
+    const t = document.getElementById('mTtTitle'); if(t) t.textContent = `${thu.getMonth()+1}월 ${wk}주차`;
+    tabs.innerHTML = TT_DAYS.map(d=>{ const dt = new Date(mon); dt.setDate(mon.getDate()+d-1);
+      return `<button type="button" data-d="${d}" class="${d===mTtSelDay?'on':''}">${TT_DAY_LABEL[d]}<b>${dt.getDate()}</b></button>`; }).join('');
+    const blocks = mDayBlocks(mTtSelDay);
+    document.getElementById('mTt_list').innerHTML = blocks.length ? blocks.map(mTlRow).join('') : '<div class="mt-empty">이 요일에는 수업이 없어요</div>';
+  }
+  document.getElementById('mTt_days').addEventListener('click', e=>{
+    const b = e.target.closest('button[data-d]'); if(!b) return;
+    mTtSelDay = Number(b.dataset.d); renderMTimetable();
+  });
+  document.getElementById('mStuAdd').addEventListener('click', ()=> document.getElementById('addStudentBtn').click());
+  document.getElementById('mTtEditBtn').addEventListener('click', ()=>{
+    const v = document.getElementById('view-timetable'); const on = v.classList.toggle('m-edit');
+    document.getElementById('mTtEditBtn').textContent = on ? '편집 닫기' : '시간표 편집';
+    if(on) setTimeout(()=>document.getElementById('tt_table').scrollIntoView({behavior:'smooth',block:'start'}),50);
+  });
+  function setGreetName(name){ const el = document.getElementById('mGreetName'); if(el) el.textContent = name ? name+' ' : ''; }
+
   function renderHome(){
     const now = new Date();
     if(calYear===undefined){ calYear = now.getFullYear(); calMonth = now.getMonth(); }
@@ -3511,6 +3884,7 @@
     renderStats();
     renderCalendar();
     renderDayPanel();
+    renderMToday();
     loadDashboardMemo();
     const topbarDateEl = document.getElementById('topbarDate');
     if(topbarDateEl){
@@ -3784,13 +4158,18 @@
     });
   }
   function renderStudentCards(container, list){
+    const _n = new Date(); const curMonthKey = `${_n.getFullYear()}-${pad2(_n.getMonth()+1)}`;
     list.forEach(s=>{
       const count = reports.filter(r=>r.studentId===s.id).length;
+      const reportDone = reports.some(r=>r.studentId===s.id && r.month===curMonthKey);
       const card = document.createElement('div');
       card.className='student-card';
-      card.innerHTML = `<h3>${escapeHtml(s.name)}</h3>
-        <div class="meta">${s.grade ? escapeHtml(s.grade)+' · ' : ''}${escapeHtml(s.group||'반 미지정')}</div>
-        <span class="count">리포트 ${count}건</span>`;
+      const sc = s.group ? ttColorFor(s.group) : null;
+      card.innerHTML = `<span class="sav" style="${sc?`background:${sc.bg};color:${sc.fg}`:''}">${escapeHtml((s.name||'?').charAt(0))}</span>
+        <div class="sbody"><h3>${escapeHtml(s.name)}</h3>
+        <div class="meta">${s.grade ? escapeHtml(s.grade)+' · ' : ''}${escapeHtml(s.group||'반 미지정')}</div></div>
+        <span class="count">리포트 ${count}건</span>
+        <span class="rstat ${reportDone?'ok':'no'}">${reportDone?'작성완료':'작성전'}</span>`;
       card.addEventListener('click',()=>{
         openStudentProfile(s.id);
       });
@@ -3798,6 +4177,7 @@
     });
   }
   function renderDashboard(){
+    { const n = document.getElementById('mStuN'); if(n) n.textContent = students.length + '명'; }
     renderStudentGroupTabs();
     const grid = document.getElementById('studentGrid');
     const q = (document.getElementById('studentSearch').value||"").trim();
@@ -7301,17 +7681,19 @@
     const content = document.getElementById('bookOrderSubmitContent');
     const bodyHtml = done.length
       ? `<table>
-          <thead><tr><th>순번</th><th>반/과정명</th><th>도서명(교재명)</th><th>필요수량</th></tr></thead>
+          <thead><tr><th>#</th><th>반/과정명</th><th>도서명(교재명)</th><th>수량</th></tr></thead>
           <tbody>${done.map((o,idx)=>`<tr>
             <td>${idx+1}</td><td>${escapeHtml(o.className||'-')}</td><td>${escapeHtml(o.bookName||'-')}</td><td>${escapeHtml(String(o.qty||1))}권</td>
           </tr>`).join('')}</tbody>
         </table>`
       : `<div class="book-order-doc-empty">"주문완료"로 표시된 항목이 없습니다.</div>`;
     content.innerHTML = `
-      <div class="book-order-doc-title">ION English 어학원</div>
-      <div class="book-order-doc-sub">교재 주문서 (총판 제출용)</div>
-      <div class="book-order-doc-meta"><span>주문일자: ${todayStr}</span><span>총 ${done.length}건</span></div>
-      ${bodyHtml}
+      <div class="book-order-doc-hd">
+        <div class="book-order-doc-title">교재 주문서</div>
+        <div class="book-order-doc-sub">ION English 어학원 · 총판 제출용</div>
+        <div class="book-order-doc-meta"><div>주문일자<b>${todayStr}</b></div><div>총 건수<b>${done.length}건</b></div></div>
+      </div>
+      <div class="book-order-doc-bd">${bodyHtml}</div>
     `;
     showOverlay('bookOrderSubmitArea', 'shareBookOrderImageBtn');
   });
@@ -7502,14 +7884,19 @@
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('appRoot').style.display = 'flex';
     document.getElementById('auth_status').textContent = '데이터를 불러오는 중...';
-    try{
-      await pullAllFromServer();
-    }catch(e){
-      console.error(e);
-      toast('서버에서 데이터를 불러오지 못했습니다. 새로고침해서 다시 시도해주세요.');
+    // 일시적인 네트워크 오류는 자동 재시도 (최대 3회)
+    let pulled = false;
+    for(let i=0; i<3 && !pulled; i++){
+      try{ await pullAllFromServer(); pulled = true; }
+      catch(e){
+        console.error('pull attempt', i+1, e);
+        if(i<2) await new Promise(r=>setTimeout(r, 1200*(i+1)));
+      }
     }
     document.getElementById('auth_status').textContent = '';
-    syncEnabled = true; // 이제부터의 저장은 실제로 서버에 반영됩니다
+    // 불러오기에 실패했다면 서버 저장을 켜지 않는다 (오래된 로컬 데이터로 서버를 덮어쓰는 것 방지)
+    if(pulled){ syncEnabled = true; }
+    else { toast('서버에서 데이터를 불러오지 못했습니다. 안전을 위해 저장이 잠시 꺼졌어요. 새로고침해서 다시 시도해주세요.'); }
     renderDashboard();
     renderHome();
     try{
@@ -7638,6 +8025,7 @@
     const name = profile.display_name || profile.login_id || '';
     document.getElementById('pfAv').textContent = (name.trim().charAt(0) || '?').toUpperCase();
     document.getElementById('pfName').textContent = name;
+    setGreetName(name);
     document.getElementById('pfMenuName').textContent = name;
     document.getElementById('pfMenuSub').textContent = (profile.role === 'owner' ? '원장' : '선생님') + ' · ' + (profile.login_id || '');
     document.getElementById('pfTeachersItem').style.display = profile.role === 'owner' ? 'block' : 'none';
@@ -7767,10 +8155,14 @@
   const dots = '<svg viewBox="0 0 20 20" fill="currentColor"><circle cx="4" cy="10" r="1.6"/><circle cx="10" cy="10" r="1.6"/><circle cx="16" cy="10" r="1.6"/></svg>';
   const root = document.getElementById('appRoot');
 
+  const bell = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"/></svg>';
   const header = document.createElement('div'); header.id = 'mHeader';
-  header.innerHTML = '<div class="brand-row"><div class="mark">ION</div><div class="wm">ION ENGLISH<em>ACADEMY MANAGER</em></div></div>'
-    + '<div class="ic"><button type="button" id="mHdrStats" aria-label="요약 보기">'+chart+'</button><button type="button" id="mHdrSettings" aria-label="설정">'+svgOf('settings')+'</button></div>';
+  header.innerHTML = '<div class="mh-top"><span class="mh-brand">ION<small>ENGLISH</small></span><button type="button" id="mHdrStats" aria-label="요약 보기">'+bell+'</button></div>';
+  const greet = document.createElement('div'); greet.className = 'mh-greet'; greet.id = 'mGreet';
+  greet.innerHTML = '좋은 하루예요, <span id="mGreetName"></span>선생님';
+  root.querySelector('.content-col').prepend(greet);
   root.querySelector('.content-col').prepend(header);
+  { const n0 = document.getElementById('pfName'); if(n0 && n0.textContent) document.getElementById('mGreetName').textContent = n0.textContent + ' '; }
 
   const dim = document.createElement('div'); dim.id = 'mDim';
   const sheet = document.createElement('div'); sheet.id = 'mSheet';
@@ -7781,7 +8173,8 @@
     + '<button type="button" id="mAddEvent"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="15" height="13" rx="2"/><line x1="2.5" y1="8" x2="17.5" y2="8"/><line x1="6.5" y1="2" x2="6.5" y2="5.5"/><line x1="13.5" y1="2" x2="13.5" y2="5.5"/></svg>일정 추가</button>'
     + '<button type="button" id="mAddStudent"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6.5" r="3.2"/><path d="M3.5 17c0-3.3 2.9-5.5 6.5-5.5s6.5 2.2 6.5 5.5"/></svg>학생 추가</button></div>';
   const dock = document.createElement('div'); dock.id = 'mDock';
-  const mk = (v,l)=>'<button type="button" data-go="'+v+'">'+svgOf(v)+l+'</button>';
+  const homeIc = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>';
+  const mk = (v,l)=>'<button type="button" data-go="'+v+'">'+(v==='home'?homeIc:svgOf(v))+l+'</button>';
   dock.innerHTML = mk('home','홈') + mk('dashboard','학생') + '<button type="button" class="fab" aria-label="빠른 추가">'+plus+'</button>'
     + mk('timetable','시간표') + '<button type="button" data-more>'+dots+'더보기</button>';
   root.append(dim, sheet, add, dock);
@@ -7806,11 +8199,11 @@
     setTimeout(()=>{ const a = document.getElementById('addStudentBtn'); if(a) a.click(); }, 120);
   });
   document.getElementById('mHdrStats').addEventListener('click', ()=>{ go('home'); setTimeout(()=>document.getElementById('statsBtn').click(), 80); });
-  document.getElementById('mHdrSettings').addEventListener('click', ()=> go('settings'));
 
   function sync(){
     const cur = document.querySelector('.nav button.active');
     const v = cur ? cur.dataset.view : 'home';
+    root.dataset.view = v;
     dock.querySelectorAll('button[data-go]').forEach(b=> b.classList.toggle('on', b.dataset.go === v));
     dock.querySelector('[data-more]').classList.toggle('on', MORE.includes(v));
     sheet.querySelectorAll('button[data-go]').forEach(b=> b.classList.toggle('on', b.dataset.go === v));
