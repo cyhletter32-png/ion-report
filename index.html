@@ -884,6 +884,100 @@
     .book-order-doc-hd{padding:22px 20px!important;}
     .book-order-doc-bd{padding:10px 12px 18px!important;}
     .book-order-doc td{padding:12px 8px!important;}
+    /* 원비 수납: 학생당 두 줄 카드 + 요약/필터 */
+    .tu-summary{display:none!important;}
+    .tu-mbar{display:block!important;}
+    .tu-msum{background:#F4F7FB;border-radius:14px;padding:12px 16px;margin-bottom:10px;font-size:12px;color:#8B95A5;display:flex;justify-content:space-between;line-height:1.5;}
+    .tu-msum b{color:#1d2b45;font-size:17px;}
+    .tu-mchips{display:flex;gap:6px;margin-bottom:12px;}
+    .tu-mchips button{all:unset;cursor:pointer;font-size:13px;font-weight:700;padding:8px 14px;border-radius:99px;background:#F4F7FB;color:#8B95A5;}
+    .tu-mchips button.on{background:#3B78D0;color:#fff;}
+    #tu_listWrap[data-tuf="unpaid"] .tu-row-group.is-paid{display:none!important;}
+    #tu_listWrap[data-tuf="paid"] .tu-row-group:not(.is-paid){display:none!important;}
+    #tu_listWrap .card{overflow:visible!important;background:none!important;box-shadow:none!important;border:0!important;}
+    #tu_listWrap .tu-grid{display:block;min-width:0!important;font-size:14px;}
+    #tu_listWrap .tu-head-cell{display:none!important;}
+    #tu_listWrap .tu-row-group{display:grid!important;grid-template-columns:1fr auto;gap:8px 10px;background:#fff;border:1px solid #E6EBF3;border-radius:14px;padding:11px 12px;margin-bottom:8px;box-shadow:0 2px 8px -4px rgba(25,45,90,.10);align-items:center;}
+    #tu_listWrap .tu-row-group > .tu-cell{display:flex;padding:0!important;border:0!important;background:none!important;min-width:0;align-items:center;}
+    #tu_listWrap .tu-row-group > .tu-cell:nth-child(1){grid-column:1;grid-row:1;font-size:16px;font-weight:800;gap:8px;flex-direction:row!important;justify-content:flex-start;text-align:left;cursor:pointer;}
+    #tu_listWrap .tu-row-group > .tu-cell:nth-child(1)::after{content:'▾';font-size:11px;color:#B0B8C6;margin-left:auto;}
+    #tu_listWrap .tu-row-group.mob-open > .tu-cell:nth-child(1)::after{content:'▴';}
+    #tu_listWrap .tu-row-group > .tu-cell:nth-child(6){grid-column:2;grid-row:1;justify-content:flex-end;}
+    #tu_listWrap .tu-row-group > .tu-cell:nth-child(6) .tu-final-cell-wrap{font-size:15px;font-weight:800;}
+    #tu_listWrap .tu-row-group > .tu-cell:nth-child(7){grid-column:1;grid-row:2;}
+    #tu_listWrap .tu-row-group > .tu-cell:nth-child(7) > div{flex-direction:row!important;gap:6px!important;}
+    #tu_listWrap .tu-row-group > .tu-cell:nth-child(7) select{width:96px!important;flex:none;}
+    #tu_listWrap .tu-row-group > .tu-cell:nth-child(7) input[type=date]{display:none!important;}
+    #tu_listWrap .tu-row-group.mob-open > .tu-cell:nth-child(7){grid-column:1 / -1;}
+    #tu_listWrap .tu-row-group.mob-open > .tu-cell:nth-child(7) input[type=date]{display:block!important;width:140px!important;flex:none;}
+    #tu_listWrap .tu-row-group.mob-open:not(.is-paid) > .tu-cell:nth-child(7) input[type=date]{display:none!important;}
+    #tu_listWrap .tu-row-group.mob-open > .tu-cell:nth-child(8){grid-row:auto;grid-column:1 / -1;justify-content:flex-end;}
+    #tu_listWrap .tu-row-group > .tu-cell:nth-child(8){grid-column:2;grid-row:2;gap:6px;}
+    #tu_listWrap .tu-row-group > .tu-cell:nth-child(2),
+    #tu_listWrap .tu-row-group > .tu-cell:nth-child(3),
+    #tu_listWrap .tu-row-group > .tu-cell:nth-child(4),
+    #tu_listWrap .tu-row-group > .tu-cell:nth-child(5){display:none!important;}
+    #tu_listWrap .tu-row-group.mob-open > .tu-cell:nth-child(2),
+    #tu_listWrap .tu-row-group.mob-open > .tu-cell:nth-child(3),
+    #tu_listWrap .tu-row-group.mob-open > .tu-cell:nth-child(4),
+    #tu_listWrap .tu-row-group.mob-open > .tu-cell:nth-child(5){display:flex!important;grid-column:1 / -1;background:#F4F7FB!important;border-radius:10px;padding:8px 10px!important;}
+    #tu_listWrap .tu-row-group.mob-open > .tu-cell:nth-child(3)::before{content:'전달 결석';font-size:11px;color:#8B95A5;font-weight:700;margin-right:10px;}
+    #tu_listWrap .tu-row-group.mob-open > .tu-cell:nth-child(5)::before{content:'차감·할인';font-size:11px;color:#8B95A5;font-weight:700;margin-right:10px;}
+    #tu_listWrap select, #tu_listWrap input[type=date]{height:36px!important;font-size:13px!important;box-sizing:border-box;}
+    #tu_listWrap .tu-final-input{height:34px!important;width:96px!important;text-align:right;font-size:15px!important;font-weight:800;}
+    #tu_listWrap .tu-action-btn{height:36px;font-size:12px;padding:0 9px;}
+    #tu_listWrap .tu-absence-toggle{height:34px;padding:0 12px;font-size:13px;}
+    #tu_listWrap .tu-detail-cell{background:#F4F7FB;border-radius:12px;padding:10px 12px;margin:-4px 0 8px;}
+    #tu_listWrap .tu-absence-list{flex-direction:column;gap:10px;}
+    #tu_listWrap .tu-absence-list label{font-size:14px;gap:8px;}
+    #tu_listWrap .tu-absence-list input{width:20px;height:20px;}
+    /* 반 관리 출석표: 이름 열 고정 + 터치하기 쉬운 칸 */
+    .cm-table{font-size:13px;}
+    .cm-table th:first-child, .cm-table td.cm-name-col{position:sticky;left:0;z-index:3;background:#fff;box-shadow:2px 0 4px -2px rgba(25,45,90,.15);}
+    .cm-table th:first-child{background:var(--paper);}
+    .cm-name-col{width:64px!important;min-width:64px!important;font-size:13px!important;}
+    .cm-day-col{width:44px!important;min-width:44px!important;}
+    .cm-check{min-height:48px!important;font-size:15px!important;}
+    .cm-sum-col{width:40px;min-width:40px;}
+    /* 반 관리 출석: 날짜 선택 방식 */
+    .cm-table-card{display:none!important;}
+    #cm_mobile{margin-top:14px;}
+    .cmm-mode{display:flex;background:#EEF1F6;border-radius:12px;padding:3px;margin-bottom:12px;}
+    .cmm-mode button{all:unset;box-sizing:border-box;flex:1;text-align:center;padding:9px 0;border-radius:10px;font-size:13.5px;font-weight:700;color:#8B95A5;cursor:pointer;}
+    .cmm-mode button.on{background:#fff;color:#1d2b45;box-shadow:0 1px 4px rgba(25,45,90,.12);}
+    .cmm-card{background:#fff;border:1px solid #E6EBF3;border-radius:16px;padding:14px;margin-bottom:12px;}
+    .cmm-ct{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;}
+    .cmm-ct span{font-size:16px;font-weight:800;}
+    .cmm-ct small{font-size:11.5px;color:#8B95A5;font-weight:700;}
+    .cmm-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+    .cmm-cell{all:unset;box-sizing:border-box;aspect-ratio:1;border-radius:10px;background:#F4F7FB;color:#8B95A5;font-size:11px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;cursor:pointer;}
+    .cmm-cell b{font-size:13px;}
+    .cmm-cell.hol{color:#C0392B;}
+    .cmm-cell.p{background:#E3F1E7;color:#2F5E3D;}
+    .cmm-cell.a{background:#FBE4E8;color:#6E2E3C;}
+    .cmm-cell.m{background:#FDF0D8;color:#7A5613;}
+    .cmm-tip{font-size:12px;color:#8B95A5;text-align:center;margin:4px 0 8px;}
+    .cmm-dates{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+    .cmm-dates::-webkit-scrollbar{display:none;}
+    .cmm-date{all:unset;box-sizing:border-box;flex:none;width:50px;text-align:center;padding:8px 0 6px;border-radius:14px;background:#fff;border:1px solid #E6EBF3;font-size:11px;color:#8B95A5;cursor:pointer;position:relative;}
+    .cmm-date b{display:block;font-size:17px;color:#1d2b45;margin-top:2px;}
+    .cmm-date i{display:block;width:6px;height:6px;border-radius:50%;margin:4px auto 0;background:transparent;}
+    .cmm-date.done i{background:#3FA568;}
+    .cmm-date.hol b,.cmm-date.hol{color:#C0392B;}
+    .cmm-date.on{background:#3B78D0;border-color:#3B78D0;color:#fff;}
+    .cmm-date.on b{color:#fff;}
+    .cmm-date.on i{background:rgba(255,255,255,.7)!important;}
+    .cmm-hol{background:#FDEAEA;color:#C0392B;font-weight:700;font-size:12.5px;padding:8px 12px;border-radius:10px;margin-bottom:8px;}
+    .cmm-all{all:unset;box-sizing:border-box;display:block;width:100%;text-align:center;background:#EAF2FF;color:#2f6fc4;font-weight:800;font-size:14px;padding:13px;border-radius:12px;margin-bottom:6px;cursor:pointer;}
+    .cmm-row{padding:12px 0;border-bottom:1px solid #EEF1F6;}
+    .cmm-top{display:flex;align-items:center;gap:10px;}
+    .cmm-nm{flex:1;font-size:16px;font-weight:700;min-width:0;}
+    .cmm-seg{display:flex;gap:6px;}
+    .cmm-seg button{all:unset;box-sizing:border-box;width:54px;height:42px;border-radius:11px;background:#F4F7FB;color:#8B95A5;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+    .cmm-seg button.p{background:#3FA568;color:#fff;}
+    .cmm-seg button.a{background:#E5546C;color:#fff;}
+    .cmm-seg button.m{background:#E8A33D;color:#fff;}
+    .cmm-mk{all:unset;box-sizing:border-box;margin-top:8px;font-size:12.5px;font-weight:700;color:#7A5613;background:#FDF0D8;padding:7px 12px;border-radius:10px;cursor:pointer;display:inline-block;}
     .m-head{display:flex;align-items:center;justify-content:space-between;}
     .m-head h1{margin:0;}
     .m-head h1 em{display:none;}
@@ -1194,6 +1288,7 @@
   .veh-map-search input[type=text]{flex:1;border:1px solid var(--line);border-radius:6px;padding:7px 10px;font-size:12.5px;font-family:var(--sans);}
 
   /* ---------- Tuition (원비 수납) ---------- */
+  .tu-mbar{display:none;}
   .tu-summary{background:#fff;border-radius:16px;padding:18px 22px;margin-bottom:14px;box-shadow:0 4px 18px rgba(30,50,90,.07);}
   .tu-sum-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;}
   .tu-sum-label{font-size:12.5px;color:#7b8798;font-weight:600;}
@@ -1642,9 +1737,10 @@
       </div>
       <div class="cm-class-tabs" id="cm_classTabs"></div>
       <div id="cm_summary"></div>
-      <div class="card" style="overflow-x:auto;margin-top:14px;">
+      <div class="card cm-table-card" style="overflow-x:auto;margin-top:14px;">
         <table id="cm_table" class="cm-table"></table>
       </div>
+      <div id="cm_mobile" class="m-only"></div>
       <div id="cm_makeup_panel"></div>
       <div class="cm-legend">
         <span class="cm-chip cm-p">○ 출석</span>
@@ -6071,6 +6167,102 @@
 
     renderClassMgmtSummary(sessions, list);
     renderMakeupPanel(sessions, list, className);
+    buildCmMobile(sessions, list, monthVal);
+  }
+  /* ---- 모바일: 날짜 선택 → 그날 학생 전원 체크 ---- */
+  let cmMobDate = '';
+  let cmMobMode = 'day'; // 'day' 날짜별 · 'stu' 학생별
+  function cmSetState(key, next){
+    const prev = attendance[key] || '';
+    if(next) attendance[key] = next; else delete attendance[key];
+    if(prev==='a' && next!=='a' && makeupSchedule[key]){
+      removeMakeupCalendarEvent(key);
+      delete makeupSchedule[key];
+      saveMakeupSchedule();
+    }
+    saveAttendance();
+    buildClassMgmtTable();
+  }
+  function buildCmMobile(sessions, list, monthVal){
+    const box = document.getElementById('cm_mobile');
+    if(!box) return;
+    if(sessions.length===0 || list.length===0){ box.innerHTML = ''; return; }
+    if(!sessions.some(x=>x.dateStr===cmMobDate)){
+      const today = ymd(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+      const past = sessions.filter(x=>x.dateStr<=today);
+      cmMobDate = past.length ? past[past.length-1].dateStr : sessions[0].dateStr;
+    }
+    const oldScroll = (box.querySelector('.cmm-dates')||{}).scrollLeft;
+    const [yy,mm] = monthVal.split('-').map(Number);
+    const modeBar = `<div class="cmm-mode"><button type="button" data-mode="day" class="${cmMobMode==='day'?'on':''}">날짜별</button><button type="button" data-mode="stu" class="${cmMobMode==='stu'?'on':''}">학생별</button></div>`;
+    const bindMode = ()=> box.querySelectorAll('.cmm-mode button').forEach(btn=> btn.addEventListener('click', ()=>{ cmMobMode = btn.dataset.mode; buildCmMobile(sessions, list, monthVal); }));
+    if(cmMobMode==='stu'){
+      const cards = list.map(st=>{
+        let pc=0, ac=0, mc=0;
+        const cells = sessions.map(x=>{
+          const key = st.id+'::'+x.dateStr;
+          const v = attendance[key] || '';
+          if(v==='p') pc++; else if(v==='a') ac++; else if(v==='m') mc++;
+          const hol = KR_HOLIDAYS[x.dateStr] || closureLabelFor(x.dateStr);
+          return `<button type="button" class="cmm-cell ${v}${hol?' hol':''}" data-key="${escapeAttr(key)}">${x.d}<b>${v? CM_STATE_LABEL[v] : '&nbsp;'}</b></button>`;
+        }).join('');
+        return `<div class="cmm-card"><div class="cmm-ct"><span>${escapeHtml(st.name)}</span><small>출석 ${pc} · 결석 ${ac} · 보강 ${mc}</small></div><div class="cmm-grid">${cells}</div></div>`;
+      }).join('');
+      box.innerHTML = modeBar + cards + `<div class="cmm-tip">날짜 칸을 누르면 출석 → 결석 → 보강 → 해제 순서로 바뀝니다.</div>`;
+      bindMode();
+      box.querySelectorAll('.cmm-cell').forEach(btn=> btn.addEventListener('click', ()=>{
+        const key = btn.dataset.key;
+        cmSetState(key, cycleCmState(attendance[key]||''));
+      }));
+      return;
+    }
+    const chips = sessions.map(x=>{
+      const wd = weekdayKR(yy, mm, x.d);
+      const hol = KR_HOLIDAYS[x.dateStr] || closureLabelFor(x.dateStr);
+      const done = list.length && list.every(st=> attendance[st.id+'::'+x.dateStr]);
+      return `<button type="button" class="cmm-date${x.dateStr===cmMobDate?' on':''}${hol?' hol':''}${done?' done':''}" data-date="${x.dateStr}">${wd}<b>${x.d}</b><i></i></button>`;
+    }).join('');
+    const hol = KR_HOLIDAYS[cmMobDate] || closureLabelFor(cmMobDate);
+    const rows = list.map(st=>{
+      const key = st.id+'::'+cmMobDate;
+      const cur = attendance[key] || '';
+      let mk = '';
+      if(cur==='a'){
+        const m2 = makeupSchedule[key];
+        mk = `<button type="button" class="cmm-mk" data-mkkey="${escapeAttr(key)}">${(m2&&m2.date)? '보강 '+formatMonthDayShort(m2.date)+(m2.time?' '+escapeHtml(m2.time):'')+' · 수정' : '+ 보강 일정 잡기'}</button>`;
+      }
+      return `<div class="cmm-row"><div class="cmm-top"><span class="cmm-nm">${escapeHtml(st.name)}</span>
+        <div class="cmm-seg" data-key="${escapeAttr(key)}">
+          <button type="button" data-st="p" class="${cur==='p'?'p':''}">출석</button>
+          <button type="button" data-st="a" class="${cur==='a'?'a':''}">결석</button>
+          <button type="button" data-st="m" class="${cur==='m'?'m':''}">보강</button>
+        </div></div>${mk}</div>`;
+    }).join('');
+    const allPresent = list.every(st=> attendance[st.id+'::'+cmMobDate]==='p');
+    box.innerHTML = modeBar + `<div class="cmm-dates">${chips}</div>
+      ${hol? `<div class="cmm-hol">${escapeHtml(hol)}</div>` : ''}
+      <button type="button" class="cmm-all">${allPresent? '전원 출석 취소' : '✓ 전원 출석 처리'}</button>
+      <div class="cmm-list">${rows}</div>`;
+    bindMode();
+    const ds = box.querySelector('.cmm-dates');
+    if(oldScroll!=null) ds.scrollLeft = oldScroll;
+    else { const on = ds.querySelector('.on'); if(on) ds.scrollLeft = on.offsetLeft - 60; }
+    box.querySelectorAll('.cmm-date').forEach(btn=> btn.addEventListener('click', ()=>{ cmMobDate = btn.dataset.date; buildCmMobile(sessions, list, monthVal); }));
+    box.querySelector('.cmm-all').addEventListener('click', ()=>{
+      const th = document.querySelector('#cm_table th[data-date="'+cmMobDate+'"]');
+      if(th) th.click();
+    });
+    box.querySelectorAll('.cmm-seg button').forEach(btn=> btn.addEventListener('click', ()=>{
+      const key = btn.parentElement.dataset.key;
+      const cur = attendance[key] || '';
+      cmSetState(key, cur===btn.dataset.st ? '' : btn.dataset.st);
+    }));
+    box.querySelectorAll('.cmm-mk').forEach(btn=> btn.addEventListener('click', ()=>{
+      cmEditingMakeupKey = btn.dataset.mkkey;
+      renderMakeupPanel(sessions, list, cmSelectedClass);
+      const panelEl = document.getElementById('cm_makeup_panel');
+      if(panelEl) panelEl.scrollIntoView({behavior:'smooth', block:'center'});
+    }));
   }
   function formatMonthDayShort(dateStr){
     const [,m,d] = dateStr.split('-').map(Number);
@@ -6909,6 +7101,8 @@
   document.getElementById('tu_search').addEventListener('input', renderTuitionList);
   document.getElementById('tu_sortOption').addEventListener('change', renderTuitionList);
 
+  let tuMobFilter = 'all'; // 모바일 필터: all · unpaid · paid
+  const tuMobOpen = new Set(); // 모바일에서 펼친 학생 카드
   let tuExpandedStudentId = null; // which row's absence-detail row is currently open (only one at a time)
   function tuitionByClassThenName(a,b){
     return (classSortKey(a.group||'')-classSortKey(b.group||'')) || (a.group||'').localeCompare(b.group||'','ko') || a.name.localeCompare(b.name,'ko');
@@ -6967,7 +7161,7 @@
       if(appliedDiscounts.length) detailLabelParts.push('할인 '+appliedDiscounts.length);
       const hasDetail = absenceDates.length>0 || appliedDiscounts.length>0;
 
-      rows += `<div class="tu-row-group" data-student="${escapeAttr(s.id)}" style="display:contents">
+      rows += `<div class="tu-row-group${rec.paid?' is-paid':''}${tuMobOpen.has(s.id)?' mob-open':''}" data-student="${escapeAttr(s.id)}" style="display:contents">
         <div class="tu-cell tu-row-cell tu-name-cell">${escapeHtml(s.name)}<span class="tu-class-tag">${escapeHtml(s.group||'-')}</span></div>
         <div class="tu-cell tu-row-cell"><select class="tu-category">
           <option value="">미지정</option>
@@ -7030,7 +7224,15 @@
         <span class="tu-sum-unpaid">미납 ${sumUnpaid.toLocaleString()}원 · ${cntUnpaid}명 (${sumAll>0? 100-paidPct : 0}%)</span>
       </div>
     </div>`;
-    wrap.innerHTML = summaryHtml + `<div class="card" style="overflow-x:auto;padding:0;">
+    const mobBar = `<div class="tu-mbar">
+      <div class="tu-msum"><span>미납 ${cntUnpaid}명<br><b>${sumUnpaid.toLocaleString()}원</b></span><span style="text-align:right">수납 ${cntPaid}명<br><b>${sumPaid.toLocaleString()}원</b></span></div>
+      <div class="tu-mchips">
+        <button type="button" data-f="all" class="${tuMobFilter==='all'?'on':''}">전체</button>
+        <button type="button" data-f="unpaid" class="${tuMobFilter==='unpaid'?'on':''}">미납만</button>
+        <button type="button" data-f="paid" class="${tuMobFilter==='paid'?'on':''}">수납완료</button>
+      </div></div>`;
+    wrap.dataset.tuf = tuMobFilter;
+    wrap.innerHTML = summaryHtml + mobBar + `<div class="card" style="overflow-x:auto;padding:0;">
       <div class="tu-grid">
         <div class="tu-cell tu-head-cell" style="padding-left:28px">이름</div><div class="tu-cell tu-head-cell">구분</div>
         <div class="tu-cell tu-head-cell">결석</div><div class="tu-cell tu-head-cell">형제</div>
@@ -7040,8 +7242,19 @@
       </div>
     </div>`;
 
+    wrap.querySelectorAll('.tu-mchips button').forEach(btn=> btn.addEventListener('click', ()=>{
+      tuMobFilter = btn.dataset.f;
+      wrap.dataset.tuf = tuMobFilter;
+      wrap.querySelectorAll('.tu-mchips button').forEach(b=> b.classList.toggle('on', b===btn));
+    }));
     wrap.querySelectorAll('.tu-row-group').forEach(row=>{
       const sid = row.dataset.student;
+      const nameCell = row.querySelector('.tu-name-cell');
+      if(nameCell) nameCell.addEventListener('click', ()=>{
+        if(window.innerWidth>820) return;
+        if(tuMobOpen.has(sid)) tuMobOpen.delete(sid); else tuMobOpen.add(sid);
+        row.classList.toggle('mob-open', tuMobOpen.has(sid));
+      });
       const s = studentById(sid);
       row.querySelector('.tu-category').addEventListener('change', (e)=>{
         s.tuitionCategory = e.target.value;
