@@ -214,7 +214,7 @@
   .cal-title{font-family:var(--serif);font-size:17px;font-weight:700;min-width:120px;text-align:center;}
   .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
   .cal-card{display:flex;flex-direction:column;}
-  .cal-card .cal-grid{flex:1;grid-auto-rows:1fr;}
+  .cal-card .cal-grid{flex:1;grid-template-rows:auto;grid-auto-rows:1fr;}
   .cal-weekday{text-align:center;font-size:11.5px;font-weight:700;color:var(--muted);padding:4px 0 8px;}
   .cal-day{
     min-height:78px;border:1px solid var(--line);border-radius:8px;padding:6px;
@@ -266,6 +266,13 @@
   }
   .memo-textarea:focus{outline:none;border-color:var(--gold);}
   .memo-status{font-size:11px;color:var(--muted);margin-top:8px;text-align:right;min-height:14px;}
+  /* 큰 화면: 대시보드(캘린더·메모·일정)가 화면 높이에 맞게 꽉 차도록 */
+  @media (min-width:901px){
+    #view-home.active{display:flex;flex-direction:column;min-height:calc(100vh - 134px);}
+    .main:has(#view-home.active){padding-bottom:32px;}
+    #view-home .dash-grid{flex:1 1 auto;min-height:0;}
+    #view-home .memo-textarea{min-height:60px;}
+  }
   @media (max-width:900px){
     .dash-grid{grid-template-columns:1fr;}
     .memo-textarea{min-height:160px;}
@@ -6871,6 +6878,15 @@
       .map(k=> k.slice((studentId+'::').length))
       .sort();
   }
+  // 선불제: N월 원비의 결석 차감은 "전달(N-1월)" 출석부의 결석을 기준으로 한다.
+  function prevMonthValue(monthVal){
+    const [y,m] = monthVal.split('-').map(Number);
+    const d = new Date(y, m-2, 1);
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  }
+  function getTuitionAbsenceDates(studentId, monthVal){
+    return getStudentAbsenceDatesInMonth(studentId, prevMonthValue(monthVal));
+  }
   function tuitionKey(studentId, monthVal){ return studentId+'::'+monthVal; }
   function getTuitionRecord(studentId, monthVal){
     return tuitionRecords[tuitionKey(studentId, monthVal)] || {deductedDates:[], paid:false, method:'', paidDate:'', manualAmount:null, discountIds:[]};
@@ -6927,7 +6943,7 @@
     let sumAll=0, sumPaid=0, cntAll=0, cntPaid=0;
     list.forEach(s=>{
       const rec = getTuitionRecord(s.id, monthVal);
-      const absenceDates = getStudentAbsenceDatesInMonth(s.id, monthVal);
+      const absenceDates = getTuitionAbsenceDates(s.id, monthVal);
       let category = s.tuitionCategory || '';
       if(!category){
         const inferred = inferTuitionCategory(s.group);
@@ -6994,9 +7010,9 @@
               const checked = rec.deductedDates.includes(d) ? 'checked' : '';
               return `<label><input type="checkbox" class="tu-absence-check" data-date="${d}" ${checked}>${m}/${day}(${wd}) 차감 적용</label>`;
             }).join('')
-          : `<span class="tu-no-absence">이번 달 결석 없음</span>`;
+          : `<span class="tu-no-absence">${Number(prevMonthValue(monthVal).slice(5))}월 결석 없음</span>`;
         rows += `<div class="tu-detail-cell" data-student="${escapeAttr(s.id)}">
-          <div class="tu-detail-section-title">결석 차감</div>
+          <div class="tu-detail-section-title">결석 차감 (${Number(prevMonthValue(monthVal).slice(5))}월 출석부 기준)</div>
           <div class="tu-absence-list">${absenceHtml}</div>
           ${appliedDiscounts.length? `<div class="tu-detail-section-title" style="margin-top:10px;">적용된 추가 할인 (상단 "추가 할인" 버튼에서 수정)</div><div class="tu-absence-list"><span class="tu-no-absence">${appliedDiscounts.map(d=>escapeHtml(d.name)).join(', ')}</span></div>` : ''}
         </div>`;
@@ -7113,7 +7129,7 @@
   function computeTuitionBreakdown(studentId, monthVal){
     const s = studentById(studentId);
     const rec = getTuitionRecord(studentId, monthVal);
-    const absenceDates = getStudentAbsenceDatesInMonth(studentId, monthVal);
+    const absenceDates = getTuitionAbsenceDates(studentId, monthVal);
     const category = (s && s.tuitionCategory) || '';
     const base = tuitionRateFor(category);
     const unit = tuitionDeductionUnitFor(category);
