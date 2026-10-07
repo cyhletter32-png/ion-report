@@ -4022,7 +4022,7 @@
     if(upcoming.length){
       const nb = upcoming[0], nt = nb.teacher || classTeachers[nb.className] || '', nn = students.filter(x=>x.group===nb.className).length;
       att.innerHTML = `<div class="mt-att"><small>다음 수업 · ${ttSlotTime(nb.slot)}</small><b>${escapeHtml(nb.className)}</b>
-        <div class="row"><small>${nt?escapeHtml(nt)+' · ':''}${nn}명 · ${TT_LESSON_MIN}분${total?` · 출석 ${marked}/${total}`:''}</small><button type="button" data-mgo="classmgmt">출석 체크</button></div></div>`;
+        <div class="row"><small>${nt?escapeHtml(nt)+' · ':''}${nn}명 · ${TT_LESSON_MIN}분${total?` · 출석 ${marked}/${total}`:''}</small><button type="button" data-mgo="classmgmt" data-cls="${escapeAttr(nb.className)}">출석 체크</button></div></div>`;
     } else att.innerHTML = `<div class="mt-att"><small>${new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})}</small><b style="font-size:24px;margin-bottom:0">${blocks.length?'오늘 수업이 모두 끝났어요':'오늘은 수업이 없어요'}</b></div>`;
     const rest = upcoming.slice(1);
     document.getElementById('mt_h2l').style.display = rest.length ? '' : 'none';
@@ -4032,6 +4032,7 @@
   }
   document.getElementById('mToday').addEventListener('click', e=>{
     const b = e.target.closest('button[data-mgo]'); if(!b) return;
+    if(b.dataset.cls){ goToClassMgmt(b.dataset.cls); return; }
     if(b.dataset.mgo==='__event'){
       const t = document.getElementById('ev_title'); t.scrollIntoView({block:'center',behavior:'smooth'}); setTimeout(()=>t.focus({preventScroll:true}),250);
     } else document.querySelector('.nav button[data-view="'+b.dataset.mgo+'"]').click();
