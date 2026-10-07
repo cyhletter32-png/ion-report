@@ -992,6 +992,12 @@
     .cmm-seg button.a{background:#E5546C;color:#fff;}
     .cmm-seg button.m{background:#E8A33D;color:#fff;}
     .cmm-mk{all:unset;box-sizing:border-box;margin-top:8px;font-size:12.5px;font-weight:700;color:#7A5613;background:#FDF0D8;padding:7px 12px;border-radius:10px;cursor:pointer;display:inline-block;}
+    #view-dashboard .toolbar > div:first-child{flex-direction:column;align-items:flex-start;gap:12px !important;width:100%;}
+    #view-dashboard .toolbar > div:first-child .search{max-width:none;width:100%;}
+    .scope-toggle{display:block;}
+    .scope-toggle:empty{display:none;}
+    #view-home .scope-toggle,#view-timetable .scope-toggle{margin:2px 0 10px;}
+    #view-dashboard .toolbar .scope-toggle{margin-top:12px;margin-bottom:4px;}
     .m-head{display:flex;align-items:center;justify-content:space-between;}
     .m-head h1{margin:0;}
     .m-head h1 em{display:none;}
@@ -1625,6 +1631,7 @@
       </div>
 
       <div id="mToday" class="m-only">
+        <span class="scope-toggle"></span>
         <div id="mt_att"></div>
         <div class="mt-short">
           <button type="button" data-mgo="classmgmt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>출석</button>
@@ -1807,6 +1814,7 @@
         <p>학원 운영시간(오후 1시 ~ 8시) 동안 요일별로 반을 1시간 단위로 배치하세요. 같은 시간에 여러 반이 있으면 칸 안에 세로로 표시됩니다. 칸의 + 버튼을 눌러 반을 추가하고, 배치된 반을 클릭하면 해당 반 관리 화면으로 이동합니다.</p>
       </div>
       <div class="toolbar" style="margin-top:14px;">
+        <span class="scope-toggle d-only"></span>
         <button class="btn ghost" id="tt_bulkBtn">▦ 여러 칸 한번에 추가</button>
       </div>
       <div id="tt_bulkPanel" class="tt-bulk-panel" style="display:none;">
@@ -1825,6 +1833,7 @@
         </div>
       </div>
       <div id="mTtDay" class="m-only">
+        <span class="scope-toggle"></span>
         <div class="mt-days" id="mTt_days"></div>
         <div id="mTt_list"></div>
         <button type="button" id="mTtEditBtn" class="mt-edit">시간표 편집</button>
@@ -3150,9 +3159,15 @@
       }));
     });
   }
+  function blockInScope(b){
+    if(!scopeActive()) return true;
+    if(inScope(b.className)) return true;
+    return Array.isArray(b.hourTeachers) && b.hourTeachers.some(t=>teacherMatchesMe(t));
+  }
   function onScopeChange(){
     renderScopeToggles();
     renderDashboard();
+    try{ renderMToday(); renderTimetable(); }catch(e){}
     if(document.getElementById('view-classmgmt').classList.contains('active')) renderClassMgmt();
     if(document.getElementById('view-attendance').classList.contains('active')) renderAttendance();
   }
@@ -3338,7 +3353,7 @@
         // Every class covering this hour is listed here — multi-hour classes simply repeat
         // in each hour row they span, so several classes at the same hour sit side by side
         // (가로로) in one cell instead of needing a merged/rowspanned block.
-        const blocksHere = timetable.filter(b=> b.day===day && slot>=b.slot && slot<b.slot+b.span).sort((a,b)=> classSortKey(a.className)-classSortKey(b.className) || a.className.localeCompare(b.className,'ko'));
+        const blocksHere = timetable.filter(b=> b.day===day && blockInScope(b) && slot>=b.slot && slot<b.slot+b.span).sort((a,b)=> classSortKey(a.className)-classSortKey(b.className) || a.className.localeCompare(b.className,'ko'));
         const chips = blocksHere.map(b=>{
           const c = ttColorFor(b.className);
           const endLabel = ttEndTime(b.slot + b.span);
@@ -3974,7 +3989,7 @@
   const M_EV_LABEL = {class:'수업',test:'시험',consult:'상담',makeup:'보강',vehicle:'차량',holiday:'휴무',etc:'기타'};
   const M_EV_COLOR = {class:'#3182F6',test:'#E5484D',consult:'#2DB873',makeup:'#F08A24',vehicle:'#14A8A0',holiday:'#8B95A1',etc:'#F5C400'};
   function mDayBlocks(day){
-    return timetable.filter(b=>b.day===day).sort((a,b)=> a.slot-b.slot || classSortKey(a.className)-classSortKey(b.className));
+    return timetable.filter(b=>b.day===day && blockInScope(b)).sort((a,b)=> a.slot-b.slot || classSortKey(a.className)-classSortKey(b.className));
   }
   function mLessonRow(b){
     const col = ttColorFor(b.className) || {bg:'#E8F3FF',fg:'#1B64DA'};
