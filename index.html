@@ -272,6 +272,17 @@
     .main:has(#view-home.active){padding-bottom:32px;}
     #view-home .dash-grid{flex:1 1 auto;min-height:0;}
     #view-home .memo-textarea{min-height:60px;}
+    #view-home .cal-title{font-size:clamp(17px,1vw,20px);}
+    #view-home .cal-weekday{font-size:clamp(12px,.7vw,14px);}
+    #view-home .cal-day-num{font-size:clamp(12.5px,.72vw,14.5px);}
+    #view-home .cal-holiday-label{font-size:clamp(10px,.6vw,11.5px);}
+    #view-home .cal-event-dot{font-size:clamp(11px,.62vw,12.5px);padding:1px 6px;}
+    #view-home .cal-event-more{font-size:clamp(10.5px,.6vw,12px);}
+    #view-home .cal-legend{font-size:clamp(11.5px,.65vw,12.5px);}
+    #view-home .memo-textarea{font-size:clamp(13.5px,.75vw,14.5px);}
+    #view-home .dash-side .section-title{font-size:clamp(14px,.8vw,15px);}
+    #view-home .dash-side label, #view-home .dash-side input, #view-home .dash-side select{font-size:clamp(13px,.7vw,14px);}
+    #view-home .dash-side .field{margin-bottom:8px;}
   }
   @media (max-width:900px){
     .dash-grid{grid-template-columns:1fr;}
@@ -964,6 +975,9 @@
     .cmm-date i{display:block;width:6px;height:6px;border-radius:50%;margin:4px auto 0;background:transparent;}
     .cmm-date.done i{background:#3FA568;}
     .cmm-date.hol b,.cmm-date.hol{color:#C0392B;}
+    .cmm-date.off{background:#EEF0F3;border-color:#E3E6EB;opacity:.65;}
+    .cmm-date.off b{color:#A5ADBB;}
+    .cmm-cell.off{background:repeating-linear-gradient(135deg,#EEF0F3 0 5px,#E6E9EE 5px 10px);color:#A5ADBB;}
     .cmm-date.on{background:#3B78D0;border-color:#3B78D0;color:#fff;}
     .cmm-date.on b{color:#fff;}
     .cmm-date.on i{background:rgba(255,255,255,.7)!important;}
@@ -1155,6 +1169,7 @@
   .cm-day-col{width:30px;min-width:30px;}
   .cm-day-col-clickable{cursor:pointer;transition:background .12s;}
   .cm-day-col-clickable:hover{background:var(--gold-soft);color:var(--ink);}
+  .cm-table td.cm-off{background:repeating-linear-gradient(135deg,#EEF0F3 0 6px,#E6E9EE 6px 12px);color:#A5ADBB;cursor:not-allowed;}
   .cm-holiday{background:#FDEAEA;color:#C0392B;font-weight:700;}
   .cm-holiday .cm-wd{color:#C0392B;}
   .cz-item{display:flex;justify-content:space-between;align-items:center;gap:8px;
@@ -1288,6 +1303,10 @@
   .veh-map-search input[type=text]{flex:1;border:1px solid var(--line);border-radius:6px;padding:7px 10px;font-size:12.5px;font-family:var(--sans);}
 
   /* ---------- Tuition (원비 수납) ---------- */
+  .scope-seg{display:inline-flex;background:#EEF1F6;border-radius:99px;padding:3px;}
+  .scope-seg button{all:unset;cursor:pointer;font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:99px;color:#8B95A5;}
+  .scope-seg button.on{background:#fff;color:#2f6fc4;box-shadow:0 1px 4px rgba(25,45,90,.14);}
+  .roster-teacher-select{font-size:12.5px;padding:3px 6px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink-soft);max-width:150px;}
   .tu-mbar{display:none;}
   .tu-summary{background:#fff;border-radius:16px;padding:18px 22px;margin-bottom:14px;box-shadow:0 4px 18px rgba(30,50,90,.07);}
   .tu-sum-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;}
@@ -1694,6 +1713,7 @@
       <div class="toolbar">
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
           <input class="search" type="text" id="studentSearch" placeholder="학생 이름 검색">
+          <span class="scope-toggle"></span>
         </div>
         <div style="display:flex;gap:8px;">
           <button class="btn ghost" id="manageClassesBtn">반 관리</button>
@@ -1731,6 +1751,7 @@
       <div class="toolbar">
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
           <input type="month" id="cm_month" style="width:auto;">
+          <span class="scope-toggle"></span>
           <span id="cm_teacherLabel" style="font-size:12.5px;color:var(--muted);"></span>
         </div>
         <button class="btn ghost" id="cm_settingsBtn">⚙️ 설정</button>
@@ -2436,6 +2457,7 @@
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
           <input type="month" id="att_month" style="width:auto;">
           <select id="att_group" style="width:auto;max-width:180px;"><option value="">전체 반</option></select>
+          <span class="scope-toggle"></span>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
           <button class="btn ghost" id="att_settingsBtn">⚙️ 설정</button>
@@ -3094,6 +3116,46 @@
     return classOrder.length + (idx===-1 ? CLASS_LEVEL_ORDER.length : idx);
   }
   // Union of explicitly-created classes and any group names already used by students
+  /* ---------- 선생님별 담당 반 보기 ---------- */
+  let teacherAccounts = JSON.parse(localStorage.getItem('ionReport_teacherAccounts') || '[]'); // [{login_id, display_name}]
+  let myIdentNames = []; // 내 이름·아이디 (소문자)
+  let isOwnerUser = false;
+  let scopeAll = localStorage.getItem('ionScopeAll') === '1'; // true면 전체 반 보기
+  const _norm = v => String(v||'').trim().toLowerCase();
+  function teacherMatchesMe(v){ const n=_norm(v); return !!n && myIdentNames.includes(n); }
+  function myClassNames(){ return getAllGroupNames().filter(g=> teacherMatchesMe(classTeachers[g])); }
+  const FULL_VIEW_IDS = ['aileen','desk']; // 항상 전체 반을 보는 계정 (원장님·데스크)
+  let isFullViewUser = false;
+  function scopeActive(){ return !isFullViewUser && !scopeAll && myClassNames().length>0; }
+  function visibleGroupNames(){ return scopeActive() ? myClassNames() : getAllGroupNames(); }
+  function inScope(group){ return !scopeActive() || myClassNames().includes(group); }
+  function teacherOptionsHtml(cur){
+    const list = [];
+    const seen = new Set();
+    const add = (val,label)=>{ const k=_norm(val); if(!k||seen.has(k)) return; seen.add(k); list.push({val,label}); };
+    teacherAccounts.forEach(a=> add(a.display_name||a.login_id, (a.display_name||a.login_id)+(a.display_name&&a.login_id? ' ('+a.login_id+')':'')));
+    (teacherRoster||[]).forEach(n=> add(n,n));
+    if(cur) add(cur,cur);
+    return '<option value="">미지정</option>' + list.map(o=>`<option value="${escapeAttr(o.val)}" ${_norm(o.val)===_norm(cur)?'selected':''}>${escapeHtml(o.label)}</option>`).join('');
+  }
+  function renderScopeToggles(){
+    const has = !isFullViewUser && myClassNames().length>0;
+    document.querySelectorAll('.scope-toggle').forEach(el=>{
+      if(!has){ el.innerHTML=''; return; }
+      el.innerHTML = `<div class="scope-seg"><button type="button" data-s="mine" class="${!scopeAll?'on':''}">내 반</button><button type="button" data-s="all" class="${scopeAll?'on':''}">전체 보기</button></div>`;
+      el.querySelectorAll('button').forEach(b=> b.addEventListener('click', ()=>{
+        scopeAll = b.dataset.s==='all';
+        try{ localStorage.setItem('ionScopeAll', scopeAll?'1':'0'); }catch(e){}
+        onScopeChange();
+      }));
+    });
+  }
+  function onScopeChange(){
+    renderScopeToggles();
+    renderDashboard();
+    if(document.getElementById('view-classmgmt').classList.contains('active')) renderClassMgmt();
+    if(document.getElementById('view-attendance').classList.contains('active')) renderAttendance();
+  }
   function getAllGroupNames(){
     const fromStudents = students.map(s=>s.group).filter(Boolean);
     return Array.from(new Set([...classes, ...fromStudents])).sort((a,b)=>{
@@ -3342,10 +3404,12 @@
   try{ rosterView = localStorage.getItem('ionReport_rosterView') || 'card'; }catch(e){}
   const rosterExpanded = new Set(); // 리스트형에서 학생 목록을 펼친 반
   try{ rosterLevel = localStorage.getItem('ionReport_rosterLevel') || 'all'; }catch(e){}
-  const CLASS_MAX_STUDENTS = 9; // 반 정원 (최대)
+  const CLASS_MAX_STUDENTS = 9; // 반 정원 (최대, 기본)
+  const CLASS_MAX_OVERRIDES = [[/^중3/, 10]]; // 반 이름이 맞으면 정원 예외 (중3 = 10명)
+  function classMax(name){ const o = CLASS_MAX_OVERRIDES.find(([re])=>re.test(name||'')); return o ? o[1] : CLASS_MAX_STUDENTS; }
   function classIsFull(name, exceptId){
     if(!name) return false;
-    return students.filter(s=>s.group===name && s.id!==exceptId).length >= CLASS_MAX_STUDENTS;
+    return students.filter(s=>s.group===name && s.id!==exceptId).length >= classMax(name);
   }
   // 같은 시간대 요일을 묶어서 한 줄로: 월·화·수·목·금 15:00-16:00
   function compactScheduleSummary(className){
@@ -3432,15 +3496,22 @@
       card.innerHTML = `
         <div class="roster-card-head">
           <h3 class="roster-card-title" style="${nameColorStyle}">${escapeHtml(displayName)}</h3>
-          <span class="roster-card-count">${c.unassigned ? c.list.length+'명' : c.list.length+'/'+CLASS_MAX_STUDENTS+'명'}</span>
+          <span class="roster-card-count">${c.unassigned ? c.list.length+'명' : c.list.length+'/'+classMax(c.name)+'명'}</span>
         </div>
-        ${c.unassigned ? '' : `<div class="roster-row"><span class="roster-label">담당</span><span style="font-size:12.5px;color:var(--ink-soft);">${classTeachers[c.name] ? escapeHtml(classTeachers[c.name]) : '미지정'}</span></div>`}
+        ${c.unassigned ? '' : `<div class="roster-row"><span class="roster-label">담당</span>${isOwnerUser ? `<select class="roster-teacher-select" data-class="${escapeAttr(c.name)}">${teacherOptionsHtml(classTeachers[c.name]||'')}</select>` : `<span style="font-size:12.5px;color:var(--ink-soft);">${classTeachers[c.name] ? escapeHtml(classTeachers[c.name]) : '미지정'}</span>`}</div>`}
         <div class="roster-row"><span class="roster-label">수업시간</span><div class="roster-schedule-tags">${scheduleHtml}</div></div>
         ${c.unassigned ? '' : `<div class="roster-tb-grid">${TB_FIELDS.map(([k,label])=>`<label class="roster-tb-cell"><span>${label}</span><input type="text" class="roster-textbook-input" data-class="${escapeAttr(c.name)}" data-field="${k}" placeholder="교재" title="${escapeAttr(tbObj[k]||'')}" value="${escapeAttr(tbObj[k]||'')}"></label>`).join('')}</div>`}
         <button type="button" class="roster-list-toggle" data-class="${escapeAttr(c.name)}">학생 ${c.list.length}명 <b>▾</b></button>
         <div class="roster-students">${studentsHtml}</div>
       `;
       grid.appendChild(card);
+      const tSel = card.querySelector('.roster-teacher-select');
+      if(tSel) tSel.addEventListener('change', ()=>{
+        classTeachers[c.name] = tSel.value;
+        saveClassTeachers();
+        renderScopeToggles();
+        toast('담당 선생님이 변경되었습니다.');
+      });
     });
 
     grid.querySelectorAll('.roster-list-toggle').forEach(btn=>{
@@ -3481,7 +3552,7 @@
         if(!s) return;
         const newGroup = cardEl.dataset.groupvalue || '';
         if(s.group === newGroup) return;
-        if(classIsFull(newGroup, s.id)){ toast(`${newGroup} 반은 정원(${CLASS_MAX_STUDENTS}명)이 가득 찼습니다.`); return; }
+        if(classIsFull(newGroup, s.id)){ toast(`${newGroup} 반은 정원(${classMax(newGroup)}명)이 가득 찼습니다.`); return; }
         s.group = newGroup;
         saveStudents();
         renderRoster();
@@ -3517,7 +3588,7 @@
       opt.addEventListener('click', ()=>{
         const s = students.find(x=>x.id===opt.dataset.student);
         if(!s) return;
-        if(classIsFull(opt.dataset.class, s.id)){ toast(`${opt.dataset.class} 반은 정원(${CLASS_MAX_STUDENTS}명)이 가득 찼습니다.`); return; }
+        if(classIsFull(opt.dataset.class, s.id)){ toast(`${opt.dataset.class} 반은 정원(${classMax(opt.dataset.class)}명)이 가득 찼습니다.`); return; }
         s.group = opt.dataset.class || '';
         saveStudents();
         renderRoster();
@@ -3577,7 +3648,7 @@
     const group=document.getElementById('as_class').value;
     const name=document.getElementById('as_name').value.trim();
     if(!name){ toast('이름을 입력하세요.'); return; }
-    if(classIsFull(group)){ toast(`정원(${CLASS_MAX_STUDENTS}명)이 가득 찼습니다.`); return; }
+    if(classIsFull(group)){ toast(`정원(${classMax(group)}명)이 가득 찼습니다.`); return; }
     students.push({id:uid(), name, grade:document.getElementById('as_grade').value.trim(), group, enName:document.getElementById('as_en').value.trim()});
     saveStudents();
     renderRoster();
@@ -4240,7 +4311,7 @@
   // 학생 관리 상단의 반 필터 — 드롭다운 대신 반 관리 화면과 동일한 반별 컬러 버튼으로 전환.
   function renderStudentGroupTabs(){
     const wrap = document.getElementById('studentGroupTabs');
-    const groups = getAllGroupNames();
+    const groups = visibleGroupNames();
     if(!(studentGroupFilter==='' || studentGroupFilter==='__none__' || groups.includes(studentGroupFilter))){
       studentGroupFilter = '';
     }
@@ -4249,7 +4320,7 @@
       const col = ttColorFor(g);
       return `<button type="button" class="cm-class-tab ${studentGroupFilter===g?'active':''}" data-group="${escapeAttr(g)}" style="background:${col.bg};color:${col.fg};">${escapeHtml(g)}</button>`;
     }).join('');
-    if(students.some(s=>!s.group)){
+    if(!scopeActive() && students.some(s=>!s.group)){
       html += `<button type="button" class="cm-class-tab cm-class-tab-neutral ${studentGroupFilter==='__none__'?'active':''}" data-group="__none__">반 미지정</button>`;
     }
     wrap.innerHTML = html;
@@ -4287,6 +4358,7 @@
     const groupFilter = studentGroupFilter;
 
     let list = students.filter(s=> s.name.includes(q) || (s.group||"").includes(q));
+    if(scopeActive()) list = list.filter(s=> inScope(s.group));
     if(groupFilter==='__none__') list = list.filter(s=>!s.group);
     else if(groupFilter) list = list.filter(s=>s.group===groupFilter);
 
@@ -4349,7 +4421,7 @@
       const hint = existing.length ? `\n기존 반: ${existing.join(', ')}` : '';
       group = prompt('반 이름 (선택, 생략 가능)'+hint) || "";
     }
-    if(group.trim() && classIsFull(group.trim())){ toast(`${group.trim()} 반은 정원(${CLASS_MAX_STUDENTS}명)이 가득 찼습니다.`); return; }
+    if(group.trim() && classIsFull(group.trim())){ toast(`${group.trim()} 반은 정원(${classMax(group.trim())}명)이 가득 찼습니다.`); return; }
     students.push({id:uid(), name:name.trim(), grade:grade.trim(), group:group.trim(), enName:enName.trim()});
     saveStudents();
     renderDashboard();
@@ -4386,7 +4458,7 @@
       item.className='class-list-item';
       item.innerHTML = `
         <div><span class="cl-name">${escapeHtml(name)}</span><span class="cl-count">${count}명</span></div>
-        <div class="cl-teacher-row"><label>담당 선생님</label><input type="text" class="cl-teacher-input" data-class="${escapeAttr(name)}" placeholder="예: 김민지 선생님" value="${escapeAttr(classTeachers[name]||'')}"></div>
+        <div class="cl-teacher-row"><label>담당 선생님</label>${(teacherAccounts.length||teacherRoster.length) ? `<select class="cl-teacher-input" data-class="${escapeAttr(name)}" style="flex:1;border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-size:12px;">${teacherOptionsHtml(classTeachers[name]||'')}</select>` : `<input type="text" class="cl-teacher-input" data-class="${escapeAttr(name)}" placeholder="예: 김민지 선생님" value="${escapeAttr(classTeachers[name]||'')}">`}</div>
         <div class="cl-actions">
           <button class="icon-btn" title="위로" data-act="up" ${idx===0?'disabled style="opacity:.3;cursor:default"':''}>▲</button>
           <button class="icon-btn" title="아래로" data-act="down" ${idx===names.length-1?'disabled style="opacity:.3;cursor:default"':''}>▼</button>
@@ -4396,6 +4468,7 @@
       item.querySelector('.cl-teacher-input').addEventListener('change', (e)=>{
         classTeachers[name] = e.target.value.trim();
         saveClassTeachers();
+        renderScopeToggles();
         if(document.getElementById('view-classmgmt').classList.contains('active')) renderClassMgmt();
         if(document.getElementById('view-roster').classList.contains('active')) renderRoster();
       });
@@ -5809,8 +5882,8 @@
   function populateAttGroupSelect(){
     const sel = document.getElementById('att_group');
     const cur = sel.value;
-    const groups = getAllGroupNames();
-    sel.innerHTML = '<option value="">전체 반</option>' + groups.map(g=>`<option value="${escapeAttr(g)}">${escapeHtml(g)}</option>`).join('');
+    const groups = visibleGroupNames();
+    sel.innerHTML = '<option value="">' + (scopeActive() ? '내 담당 반 전체' : '전체 반') + '</option>' + groups.map(g=>`<option value="${escapeAttr(g)}">${escapeHtml(g)}</option>`).join('');
     if(groups.includes(cur)) sel.value = cur;
   }
   function renderAttendance(){
@@ -5825,7 +5898,7 @@
     const groupFilter = document.getElementById('att_group').value;
     const [y,m] = monthVal.split('-').map(Number);
     const dCount = daysInMonth(monthVal);
-    const list = students.filter(s=> !groupFilter || s.group===groupFilter)
+    const list = students.filter(s=> (groupFilter ? s.group===groupFilter : inScope(s.group)))
       .sort((a,b)=> (classSortKey(a.group||'')-classSortKey(b.group||'')) || (a.group||'').localeCompare(b.group||'','ko') || a.name.localeCompare(b.name,'ko'));
 
     // 반 관리와 동일하게 주말(토·일)은 표에서 아예 제외합니다.
@@ -5954,7 +6027,7 @@
   function attRenderSheets(){
     const monthVal = document.getElementById('att_month').value || currentMonthValue();
     const groupFilter = document.getElementById('att_group').value;
-    const groups = getAllGroupNames().filter(g=> (!groupFilter || g===groupFilter) && students.some(s=>s.group===g));
+    const groups = visibleGroupNames().filter(g=> (!groupFilter || g===groupFilter) && students.some(s=>s.group===g));
     document.getElementById('attLetterContent').innerHTML = groups.length
       ? groups.map(g=>attSheetHtml(g, monthVal)).join('')
       : `<div style="text-align:center;color:var(--muted);padding:40px 0;">해당 조건의 학생이 없습니다.</div>`;
@@ -6028,13 +6101,13 @@
   let cmSelectedClass = '';
   // "반 관리" 상단의 반 선택 — 드롭다운 대신 버튼으로 모든 반을 한눈에 보여주고 클릭 한 번으로 전환.
   function populateClassMgmtClassSelect(){
-    const names = getAllGroupNames();
+    const names = visibleGroupNames();
     if(!names.includes(cmSelectedClass)) cmSelectedClass = names.length ? names[0] : '';
     renderCmClassTabs();
   }
   function renderCmClassTabs(){
     const wrap = document.getElementById('cm_classTabs');
-    const names = getAllGroupNames();
+    const names = visibleGroupNames();
     wrap.innerHTML = names.map(g=>{
       const col = ttColorFor(g);
       return `<button type="button" class="cm-class-tab ${g===cmSelectedClass?'active':''}" data-class="${escapeAttr(g)}" style="background:${col.bg};color:${col.fg};">${escapeHtml(g)}</button>`;
@@ -6074,7 +6147,7 @@
       const wd = weekdayKR(...monthVal.split('-').map(Number), sess.d);
       const holidayName = KR_HOLIDAYS[sess.dateStr] || closureLabelFor(sess.dateStr);
       const headTitle = holidayName ? holidayName : '클릭하면 이 날짜 전체 학생을 출석으로 표시합니다';
-      head += `<th class="cm-day-col cm-day-col-clickable${holidayName?' cm-holiday':''}" data-date="${sess.dateStr}" title="${escapeAttr(headTitle)}">${sess.d}<span class="cm-wd">${wd}</span></th>`;
+      head += `<th class="cm-day-col${holidayName?' cm-holiday':' cm-day-col-clickable'}" data-date="${sess.dateStr}" title="${escapeAttr(headTitle)}">${sess.d}<span class="cm-wd">${wd}</span></th>`;
     });
     head += `<th class="cm-sum-col">출석</th><th class="cm-sum-col">결석</th><th class="cm-sum-col">보강</th></tr>`;
 
@@ -6098,6 +6171,11 @@
             makeupHtml = (mk && mk.date)
               ? `<div class="cm-makeup-tag cm-makeup-set" data-mkkey="${escapeAttr(key)}" title="보강 예정: ${escapeAttr(mk.date)}${mk.time? ' '+escapeAttr(mk.time):''}${mk.note? ' · '+escapeAttr(mk.note):''} (클릭하여 수정)">→${formatMonthDayShort(mk.date)}${mk.time? ' '+mk.time : ''}</div>`
               : `<div class="cm-makeup-tag cm-makeup-add" data-mkkey="${escapeAttr(key)}" title="보강 일정 잡기">+보강</div>`;
+          }
+          const offName = KR_HOLIDAYS[sess.dateStr] || closureLabelFor(sess.dateStr);
+          if(offName){
+            row += `<td class="cm-day-col cm-off" title="${escapeAttr(offName)} · 입력 불가">${state? '<div class="cm-cell-main">'+CM_STATE_LABEL[state]+'</div>' : ''}</td>`;
+            return;
           }
           row += `<td class="cm-day-col cm-check ${stCls}" data-student="${escapeAttr(s.id)}" data-date="${sess.dateStr}"><div class="cm-cell-main">${state? CM_STATE_LABEL[state] : ''}</div>${makeupHtml}</td>`;
         });
@@ -6187,10 +6265,13 @@
     const box = document.getElementById('cm_mobile');
     if(!box) return;
     if(sessions.length===0 || list.length===0){ box.innerHTML = ''; return; }
-    if(!sessions.some(x=>x.dateStr===cmMobDate)){
+    const isOff = d => !!(KR_HOLIDAYS[d] || closureLabelFor(d));
+    const openSessions = sessions.filter(x=>!isOff(x.dateStr));
+    if(openSessions.length===0){ box.innerHTML = '<div class="cmm-hol">이번 달은 입력 가능한 수업일이 없습니다.</div>'; return; }
+    if(!openSessions.some(x=>x.dateStr===cmMobDate)){
       const today = ymd(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
-      const past = sessions.filter(x=>x.dateStr<=today);
-      cmMobDate = past.length ? past[past.length-1].dateStr : sessions[0].dateStr;
+      const past = openSessions.filter(x=>x.dateStr<=today);
+      cmMobDate = past.length ? past[past.length-1].dateStr : openSessions[0].dateStr;
     }
     const oldScroll = (box.querySelector('.cmm-dates')||{}).scrollLeft;
     const [yy,mm] = monthVal.split('-').map(Number);
@@ -6204,7 +6285,8 @@
           const v = attendance[key] || '';
           if(v==='p') pc++; else if(v==='a') ac++; else if(v==='m') mc++;
           const hol = KR_HOLIDAYS[x.dateStr] || closureLabelFor(x.dateStr);
-          return `<button type="button" class="cmm-cell ${v}${hol?' hol':''}" data-key="${escapeAttr(key)}">${x.d}<b>${v? CM_STATE_LABEL[v] : '&nbsp;'}</b></button>`;
+          if(hol) return `<button type="button" class="cmm-cell off" disabled title="${escapeAttr(hol)}">${x.d}<b>&nbsp;</b></button>`;
+          return `<button type="button" class="cmm-cell ${v}" data-key="${escapeAttr(key)}">${x.d}<b>${v? CM_STATE_LABEL[v] : '&nbsp;'}</b></button>`;
         }).join('');
         return `<div class="cmm-card"><div class="cmm-ct"><span>${escapeHtml(st.name)}</span><small>출석 ${pc} · 결석 ${ac} · 보강 ${mc}</small></div><div class="cmm-grid">${cells}</div></div>`;
       }).join('');
@@ -6220,7 +6302,7 @@
       const wd = weekdayKR(yy, mm, x.d);
       const hol = KR_HOLIDAYS[x.dateStr] || closureLabelFor(x.dateStr);
       const done = list.length && list.every(st=> attendance[st.id+'::'+x.dateStr]);
-      return `<button type="button" class="cmm-date${x.dateStr===cmMobDate?' on':''}${hol?' hol':''}${done?' done':''}" data-date="${x.dateStr}">${wd}<b>${x.d}</b><i></i></button>`;
+      return `<button type="button" class="cmm-date${x.dateStr===cmMobDate?' on':''}${hol?' hol off':''}${done?' done':''}" data-date="${x.dateStr}" ${hol?'disabled':''}>${wd}<b>${x.d}</b><i></i></button>`;
     }).join('');
     const hol = KR_HOLIDAYS[cmMobDate] || closureLabelFor(cmMobDate);
     const rows = list.map(st=>{
@@ -8070,6 +8152,7 @@
     if(typeof blobMap.hwMsgTemplate === 'string' && blobMap.hwMsgTemplate) hwMsgTemplate = blobMap.hwMsgTemplate;
     if(typeof blobMap.tuitionMsgTemplate === 'string' && blobMap.tuitionMsgTemplate) tuitionMsgTemplate = blobMap.tuitionMsgTemplate;
     if(Array.isArray(blobMap.teacherRoster)) teacherRoster = blobMap.teacherRoster;
+    if(Array.isArray(blobMap.teacherAccounts)){ teacherAccounts = blobMap.teacherAccounts; localStorage.setItem('ionReport_teacherAccounts', JSON.stringify(teacherAccounts)); }
     if(blobMap.classOrder) classOrder = blobMap.classOrder;
     if(blobMap.studentEnNames){
       students.forEach(s=>{ if(blobMap.studentEnNames[s.id]) s.enName = blobMap.studentEnNames[s.id]; });
@@ -8133,7 +8216,13 @@
       if(user){
         const {data:profile} = await sb.from('profiles').select('login_id, display_name, role').eq('user_id', user.id).maybeSingle();
         const infoEl = document.getElementById('settingsAccountInfo');
-        if(profile){ setProfileChip(profile); myLoginId = profile.login_id || ''; }
+        if(profile){
+          setProfileChip(profile); myLoginId = profile.login_id || '';
+          myIdentNames = [profile.display_name, profile.login_id].map(_norm).filter(Boolean);
+          isOwnerUser = profile.role === 'owner';
+          isFullViewUser = FULL_VIEW_IDS.includes(_norm(profile.login_id));
+          onScopeChange();
+        }
         if(profile && profile.role === 'owner'){ setTuitionAccess(true); document.getElementById('teacherMgmtCard').style.display = 'block'; tmLoad(); }
         else if(profile){
           let ok = false;
@@ -8188,6 +8277,12 @@
       const r = await tmCall({action:'list'});
       // 아이디 등록된 계정 이름을 교재 주문 드롭다운용으로 공유
       const names = (r.users||[]).map(u=>u.display_name || u.login_id).filter(Boolean);
+      const accts = (r.users||[]).map(u=>({login_id:u.login_id||'', display_name:u.display_name||''}));
+      if(JSON.stringify(accts) !== JSON.stringify(teacherAccounts)){
+        teacherAccounts = accts;
+        localStorage.setItem('ionReport_teacherAccounts', JSON.stringify(teacherAccounts));
+        syncBlob('teacherAccounts', teacherAccounts);
+      }
       if(JSON.stringify(names) !== JSON.stringify(teacherRoster)){
         teacherRoster = names;
         localStorage.setItem('ionReport_teacherRoster', JSON.stringify(teacherRoster));
