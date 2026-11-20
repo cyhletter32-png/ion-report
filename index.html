@@ -9279,7 +9279,7 @@ body.study-open{overflow:hidden}
     b.textContent = '서버 저장 실패 ('+table+')'+code+': '+msg+'  (눌러서 닫기)';
   }
   async function syncRows(table, items, keyOf, toRow, deleteFn, upsertFn){
-    if(!syncEnabled) return;
+    if(!syncEnabled){ if(table==='attendance') showSyncErr(table, {message:'서버 저장이 꺼져 있어요 (불러오기 실패). 새로고침 후 다시 시도하세요'}); return; }
     const prev = syncSnapshots[table] || new Map();
     const seen = new Set();
     const upserts = [];
@@ -9358,7 +9358,15 @@ body.study-open{overflow:hidden}
           const d = await sb.from('attendance').delete().eq('student_id', r.student_id).eq('date', r.date);
           if(d.error) return d;
         }
-        return await sb.from('attendance').insert(rows);
+        const ins = await sb.from('attendance').insert(rows);
+        if(ins.error) return ins;
+        // 실제로 서버에 남았는지 다시 읽어 확인 (권한 정책 때문에 조용히 막히는 경우 대비)
+        const chk = await sb.from('attendance').select('student_id,date').in('student_id', [...new Set(rows.map(r=>r.student_id))]).in('date', [...new Set(rows.map(r=>r.date))]);
+        if(chk.error) return chk;
+        const have = new Set((chk.data||[]).map(r=>r.student_id+'::'+r.date));
+        const miss = rows.filter(r=>!have.has(r.student_id+'::'+r.date)).length;
+        if(miss) return {error:{message:'서버가 저장했다고 응답했지만 다시 읽으면 '+miss+'건이 없습니다 (Supabase 권한 정책 RLS 확인 필요)'}};
+        return ins;
       }
     );
   }
