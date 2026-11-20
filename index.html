@@ -9278,7 +9278,7 @@ body.study-open{overflow:hidden}
     const code = e && e.code ? ' ['+e.code+']' : '';
     b.textContent = '서버 저장 실패 ('+table+')'+code+': '+msg+'  (눌러서 닫기)';
   }
-  async function syncRows(table, items, keyOf, toRow, deleteFn){
+  async function syncRows(table, items, keyOf, toRow, deleteFn, upsertFn){
     if(!syncEnabled) return;
     const prev = syncSnapshots[table] || new Map();
     const seen = new Set();
@@ -9292,8 +9292,9 @@ body.study-open{overflow:hidden}
     const deletedKeys = [...prev.keys()].filter(k=>!seen.has(k));
     try{
       if(upserts.length){
-        let {error} = await sb.from(table).upsert(upserts);
-        if(error && isJwtErr(error) && await ensureFreshSession(true)) ({error} = await sb.from(table).upsert(upserts));
+        const doUp = upsertFn ? ()=>upsertFn(upserts) : async ()=> await sb.from(table).upsert(upserts);
+        let {error} = await doUp() || {};
+        if(error && isJwtErr(error) && await ensureFreshSession(true)) ({error} = await doUp() || {});
         if(error) throw error;
       }
       for(const k of deletedKeys){ await deleteFn(k); }
@@ -9337,7 +9338,9 @@ body.study-open{overflow:hidden}
       async id=>{ const {error}=await sb.from('events').delete().eq('id', id); if(error) throw error; }
     );
   }
-  async function syncAttendance(){
+  let _attQ=Promise.resolve();
+  function syncAttendance(){ _attQ=_attQ.then(syncAttendanceNow,syncAttendanceNow); return _attQ; }
+  async function syncAttendanceNow(){
     const rows = Object.keys(attendance).map(k=>{
       const idx = k.lastIndexOf('::');
       return {studentId:k.slice(0,idx), date:k.slice(idx+2), status:attendance[k]};
@@ -9348,6 +9351,14 @@ body.study-open{overflow:hidden}
       async key=>{
         const idx = key.lastIndexOf('::');
         const {error}=await sb.from('attendance').delete().eq('student_id', key.slice(0,idx)).eq('date', key.slice(idx+2)); if(error) throw error;
+      },
+      // 테이블의 유니크 키 구성과 무관하게 동작: 같은 (학생,날짜) 행을 지우고 다시 넣는다
+      async rows=>{
+        for(const r of rows){
+          const d = await sb.from('attendance').delete().eq('student_id', r.student_id).eq('date', r.date);
+          if(d.error) return d;
+        }
+        return await sb.from('attendance').insert(rows);
       }
     );
   }
