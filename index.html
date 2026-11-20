@@ -9253,7 +9253,7 @@ body.study-open{overflow:hidden}
   const SB_URL = 'https://bhwbwynslcwxkzktjynr.supabase.co';
   const SB_KEY = 'sb_publishable_ZVoeiswlVSPR8OVtg-rKmw_anhEGIu0';
   const sb = window.supabase.createClient(SB_URL, SB_KEY);
-  let syncEnabled = false;
+  let syncEnabled = false, syncBootDone = false;
   let syncSnapshots = {}; // 테이블명 -> Map(항목key -> 마지막으로 서버에 반영한 JSON 문자열)
   // 아이디 로그인을 흉내내기 위해 내부적으로 <아이디>@ion.local 이메일을 씁니다.
   function loginIdToEmail(id){
@@ -9279,7 +9279,8 @@ body.study-open{overflow:hidden}
     b.textContent = '서버 저장 실패 ('+table+')'+code+': '+msg+'  (눌러서 닫기)';
   }
   async function syncRows(table, items, keyOf, toRow, deleteFn, upsertFn){
-    if(!syncEnabled){ if(table==='attendance') showSyncErr(table, {message:'서버 저장이 꺼져 있어요 (불러오기 실패). 새로고침 후 다시 시도하세요'}); return; }
+    if(syncEnabled && pullBlocked.has(table)){ showSyncErr(table, {message:'이 항목은 서버에서 읽지 못해 저장이 막혀 있어요 (읽기 권한 문제)'}); return; }
+    if(!syncEnabled){ if(table==='attendance' && syncBootDone) showSyncErr(table, {message:'서버 저장이 꺼져 있어요. 원인 → '+(pullErrText||'알 수 없음')+'  (새로고침 후 다시 시도)'}); return; }
     const prev = syncSnapshots[table] || new Map();
     const seen = new Set();
     const upserts = [];
@@ -9396,17 +9397,43 @@ body.study-open{overflow:hidden}
   const isJwtErr = e => /jwt|token.*expired|expired.*token/i.test((e && (e.message||e.error_description||e.code)) || String(e||''));
 
   // ----- 로그인 후 서버에서 전체 데이터 불러오기 -----
+  let pullBlocked = new Set(), pullErrText = '';
   async function pullAllFromServer(){
+    // Supabase는 한 번에 최대 1000행만 돌려주므로 페이지 단위로 끝까지 읽는다 (출석 등이 1000행을 넘으면 최근 데이터가 잘려 '초기화'처럼 보임)
+    const fetchAll = async (table, orders, filt)=>{
+      const out = []; const PAGE = 1000;
+      for(let from=0; ; from+=PAGE){
+        let q = sb.from(table).select('*');
+        if(filt) q = filt(q);
+        orders.forEach(o=>{ q = q.order(o, {ascending:true}); });
+        const {data, error} = await q.range(from, from+PAGE-1);
+        if(error) return {data:null, error};
+        out.push(...(data||[]));
+        if(!data || data.length < PAGE) break;
+      }
+      return {data:out, error:null};
+    };
     const [stuRes, repRes, conRes, evRes, attRes, blobRes] = await Promise.all([
-      sb.from('students').select('*'),
-      sb.from('reports').select('*'),
-      sb.from('consults').select('*'),
-      sb.from('events').select('*'),
-      sb.from('attendance').select('*'),
-      sb.from('app_blobs').select('*').not('key','like','teacherNotes:%')
+      fetchAll('students',['id']),
+      fetchAll('reports',['id']),
+      fetchAll('consults',['id']),
+      fetchAll('events',['id']),
+      fetchAll('attendance',['student_id','date']),
+      fetchAll('app_blobs',['key'], q=>q.not('key','like','teacherNotes:%'))
     ]);
     const pullErr = [stuRes,repRes,conRes,evRes,attRes,blobRes].find(r=>r.error);
-    if(pullErr){ console.error('pull error', pullErr.error); throw pullErr.error; }
+    const pullNames = ['students','reports','consults','events','attendance','app_blobs'];
+    const pullFail = [stuRes,repRes,conRes,evRes,attRes,blobRes].map((r,i)=>r.error?{name:pullNames[i],error:r.error}:null).filter(Boolean);
+    pullBlocked = new Set();
+    if(pullFail.length){
+      console.error('pull error', pullFail);
+      pullErrText = pullFail.map(f=>f.name+': '+(f.error.message||f.error.code||'')).join(' / ');
+      const core = pullFail.find(f=>f.name==='students'||f.name==='app_blobs');
+      if(core){ const e = core.error; e.message = '['+core.name+' 읽기 실패] '+(e.message||''); throw e; }
+      // 보조 테이블만 실패: 그 테이블만 저장을 막고 나머지는 정상 동작
+      pullFail.forEach(f=>pullBlocked.add(f.name));
+      showSyncErr('불러오기', {message: pullFail.map(f=>f.name+': '+(f.error.message||f.error.code||'')).join(' / ')+' — 이 항목은 서버에서 읽지 못해 저장도 잠시 막았어요(관리자에게 권한 확인 필요)'});
+    }
     if(stuRes.data) students = stuRes.data.map(r=>({id:r.id, name:r.name, grade:r.grade, group:r.class_name, tuitionCategory:r.tuition_category, siblingDiscount:r.sibling_discount}));
     if(repRes.data) reports = repRes.data.map(r=>({id:r.id, studentId:r.student_id, month:r.month,
       attitude:{score:r.attitude_score, note:r.attitude_note}, homework:{score:r.homework_score, note:r.homework_note},
@@ -9486,8 +9513,10 @@ body.study-open{overflow:hidden}
     }
     document.getElementById('auth_status').textContent = '';
     // 불러오기에 실패했다면 서버 저장을 켜지 않는다 (오래된 로컬 데이터로 서버를 덮어쓰는 것 방지)
-    if(pulled){ syncEnabled = true; }
+    syncBootDone = true;
+    if(pulled){ syncEnabled = true; if(!pullBlocked.size) showSyncErr(null); }
     else { toast('서버에서 데이터를 불러오지 못했습니다'+(lastPullErr&&lastPullErr.message?' ('+lastPullErr.message+')':'')+'. 안전을 위해 저장이 잠시 꺼졌어요. 새로고침해서 다시 시도해주세요.'); }
+    if(!pulled){ pullErrText = (lastPullErr&&(lastPullErr.message||lastPullErr.code))||'알 수 없는 오류'; showSyncErr('불러오기', {message:pullErrText}); }
     renderDashboard();
     renderHome();
     try{
